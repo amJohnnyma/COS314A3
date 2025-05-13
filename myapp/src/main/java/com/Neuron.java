@@ -9,9 +9,9 @@ class Neuron
     double output;
     double delta;
 
-    public Neuron(int inputSize, int seed) {
+    public Neuron(int inputSize, long seed) {
         weights = new double[inputSize];
-        Random r = new Random(); //use seed somehow
+        Random r = new Random(seed); //use seed somehow
         for (int i = 0; i < inputSize; i++) { //small random weight for each input
             weights[i] = r.nextGaussian() * 0.01; // small random init
         }

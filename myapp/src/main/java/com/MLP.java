@@ -27,7 +27,7 @@ public class MLP {
     private int numSamples;
 
     //file to read, how many hidden layers, how many inputs (5)
-    public MLP(String file, int hiddenSize, int inputSize, int seed) //constructor
+    public MLP(String file, int hiddenSize, int inputSize, long seed) //constructor
     {
         //read data and assign inputs
 
