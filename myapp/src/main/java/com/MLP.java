@@ -27,7 +27,7 @@ public class MLP {
     private int numSamples;
 
     //file to read, how many hidden layers, how many inputs (5)
-    public MLP(String file, int hiddenSize, int inputSize) //constructor
+    public MLP(String file, int hiddenSize, int inputSize, int seed) //constructor
     {
         //read data and assign inputs
 
@@ -84,15 +84,47 @@ public class MLP {
         hiddenLayer = new Neuron[hiddenSize];
         for(int k = 0; k < hiddenSize;k++)
         {
-            hiddenLayer[k] = new Neuron(inputSize);
+            hiddenLayer[k] = new Neuron(inputSize, seed);
         }
 
-        outputNeuron = new Neuron(hiddenSize);
+        outputNeuron = new Neuron(hiddenSize, seed);
 
 
     }
 
-    public void solveProblem(int iterations)
+            /*
+         * 
+        TRAINING PHASE
+        ---------------
+        input (x_train) -> feedForward -> loss -> backpropagation -> update weights
+        pseudo code
+        for (epoch = 0; epoch < numEpochs; epoch++) {
+            for (int i = 0; i < trainInputs.length; i++) {
+                double[] predicted = feedForward(trainInputs[i]);
+                double loss = lossFunction(trainLabels[i], predicted);
+                backpropagate(trainLabels[i], predicted); // updates weights
+            }
+        }
+
+        TESTING PHASE
+        --------------
+        input (x_test) -> feedForward -> compare prediction to y_test (NO weight update)
+        pseudo code
+        int correct = 0;
+        for (int i = 0; i < testInputs.length; i++) {
+            double[] predicted = feedForward(testInputs[i]); // use trained weights
+            int predictedLabel = predicted[0] >= 0.5 ? 1 : 0;
+            if (predictedLabel == testLabels[i]) {
+                correct++;
+            }
+        }
+        System.out.println("Accuracy: " + (correct * 100.0 / testInputs.length) + "%");
+
+
+
+         */
+
+    public void trainNetwork(int iterations)
     {
         for(int k = 0; k < iterations; k ++)
         {
@@ -109,6 +141,11 @@ public class MLP {
             //back prop
             }
         }
+
+    }
+
+    public void testSolution()
+    {
 
     }
    
