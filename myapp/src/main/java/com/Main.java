@@ -71,7 +71,7 @@ public class Main
                             executor.submit(() -> {
                                 try {
                                     MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
-                                    mlp.trainNetwork(it, batch);
+                                    mlp.trainNetwork(it, batch, 20, 0.0001);
 
                                     Graph g = new Graph(
                                         mlp.getLosses(),

@@ -140,9 +140,10 @@ public class MLP implements Serializable{
      * 
      */
 
-    public void trainNetwork(int iterations, int batchSize) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
+    public void trainNetwork(int iterations, int batchSize, int patience, double minImpro) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
 
-   
+        double lastLoss = Double.MAX_VALUE;
+        int epochsWithoutImprovement = 0;
         for (int k = 0; k < iterations; k++) // epochs
         {
             long start = System.nanoTime();
@@ -189,6 +190,23 @@ public class MLP implements Serializable{
                     */
                 backwardBatch(batchInputs, batchLabels, predictions);
                 // end of batch implementation
+                double currentLoss = getCurrentLoss(); // Adjust based on how you're getting loss
+
+                // Check if the improvement is below the threshold
+                if (Math.abs(lastLoss - currentLoss) < minImpro) {
+                    epochsWithoutImprovement++;
+                } else {
+                    epochsWithoutImprovement = 0; // Reset counter if improvement happened
+                }
+
+                // If the loss has not improved for 'patience' epochs, stop training
+                if (epochsWithoutImprovement >= patience) {
+                    System.out.println("Early stopping triggered at epoch " + k);
+                    break; // Early stop
+                }
+
+                // Update last loss for the next epoch comparison
+                lastLoss = currentLoss;
                 long end = System.nanoTime();
 
                 epochTimes.add((end-start)/ 1_000_000); // ms
@@ -475,6 +493,11 @@ public class MLP implements Serializable{
 
     avgWeights.add(totalWeight / weightCount);
     avgBiases.add(totalBias / biasCount);
+}
+
+private double getCurrentLoss()
+{
+    return losses.lastElement();
 }
 
 /*public void saveModel(String filename) {
