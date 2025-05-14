@@ -56,13 +56,13 @@ public class Main
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-            for (int j = 1; j <= 5; j++) {
-                for (int hs = 16; hs < 128; hs *= 2) {
+            for (int j = 1; j <= 4; j++) {
+                for (int hs = 16; hs < 64; hs *= 2) {
                     for (int hl = 1; hl <= 4; hl++) {
                         for (int l = 0; l < lr.length; l++) {
 
-                            final int it = 500;
-                            final int batch = 8 * j;
+                            final int it = 300;
+                            final int batch = 16 * j;
                             final int hiddenSize = hs;
                             final int hiddenLayers = hl;
                             final double learningRate = lr[l];
@@ -71,7 +71,7 @@ public class Main
                             executor.submit(() -> {
                                 try {
                                     MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
-                                    mlp.trainNetwork(it, batch, 20, 0.0001);
+                                    mlp.trainNetwork(it, batch, 20, 0.008);
 
                                     Graph g = new Graph(
                                         mlp.getLosses(),
@@ -80,7 +80,7 @@ public class Main
                                         mlp.epochTimes
                                     );
                                     g.createAndShowChart(chartName + ".png");
-                                    mlp.saveModel(chartName + ".mlp");
+                                //    mlp.saveModel(chartName + ".mlp"); //No saving now. Dont need a saved trained model
 
                                     System.out.println("Finished: " + chartName);
                                 } catch (Exception e) {

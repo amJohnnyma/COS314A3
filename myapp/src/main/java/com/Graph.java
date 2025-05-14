@@ -82,7 +82,12 @@ public class Graph {
             BufferedImage bufferedImage = chart.createBufferedImage(width, height);
 
             // Save the BufferedImage as a PNG file
-            File file = new File(fileName);
+            File directory = new File("WithStops");  // Create a directory called "charts" if it doesn't exist
+            if (!directory.exists()) {
+                directory.mkdir();  // Create the directory if it doesn't already exist
+            }
+
+            File file = new File(directory, fileName);
             ImageIO.write(bufferedImage, "PNG", file);
             System.out.println("Chart saved as " + fileName);
         } catch (IOException e) {
