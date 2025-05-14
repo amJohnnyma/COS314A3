@@ -24,6 +24,19 @@ public class MLP {
     private int numSamples = 0;
     private double learningRate = 0.0;
 
+    //Data collection
+    private Vector<Double> losses = new Vector<Double>();
+    private Vector<Double> avgGradient = new Vector<Double>();
+    private Vector<Double> expectedValues = new Vector<Double>();
+    private Vector<Double> predictedValues = new Vector<Double>();
+    private Vector<Double> accuracyOverTime = new Vector<Double>();
+    private Vector<Double> recallOverTime = new Vector<Double>();
+    private Vector<Double> f1ScoreOverTime = new Vector<Double>();
+    
+
+
+    ////
+
     // file to read, how many hidden layers, how many inputs (5)
     public MLP(String file, int hiddenSize, int inputSize, long seed, double learningRate) // constructor
     {
@@ -35,7 +48,7 @@ public class MLP {
         // inputstime = time of day
         this.learningRate = learningRate;
 
-        String csvFile = "src/data/BTC_train.csv";
+        String csvFile = file;
         String line;
         String csvSplitBy = ",";
 
@@ -120,8 +133,6 @@ public class MLP {
 
     public void trainNetwork(int iterations) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
         for (int k = 0; k < iterations; k++) {
-            double[] losses = new double[inputsVal.size()];
-            double[] gradientDescent = new double[inputsVal.size()];
             for (int i = 0; i < inputs.size(); i++) {
                 double[] input = inputs.get(i);
                 double expectedOutput = labels.get(i);
@@ -131,10 +142,14 @@ public class MLP {
 
                 double lf = lossFunction(input, expectedOutput, predictedOutput);
 
-                losses[i] = lf;
+                //used for graphing
+                losses.add(lf);
 
-                System.out.println("Expected: " + expectedOutput + " Predicted: " + predictedOutput[0]);
-                System.out.println("Loss: " + lf);
+                expectedValues.add(expectedOutput);
+                predictedValues.add(predictedOutput[0]);
+
+            //    System.out.println("Expected: " + expectedOutput + " Predicted: " + predictedOutput[0]);
+            //    System.out.println("Loss: " + lf);
 
                 // 1. gradient calculation
                 /*
@@ -146,10 +161,14 @@ public class MLP {
                 // gradient at hidden layer
                 double delta = predictedOutput[0] - expectedOutput;
                 // update weights of output neuron
+                double avgGrad = 0.0;
                 for (int j = 0; j < hiddenLayer.length; j++) {
                     double gradient = delta * hiddenLayer[j].output; // dL/dW = delta * activation
                     outputNeuron.updateWeights(learningRate, gradient);
-                }
+                    avgGrad += gradient;
+                }                
+                avgGrad /= hiddenLayer.length;
+                avgGradient.add(avgGrad);
                 // update bias
                 outputNeuron.bias -= learningRate * delta;
 
@@ -200,17 +219,7 @@ public class MLP {
 
     // not sure if i must use predictedOutput.length or numSamples
     public double lossFunction(double[] inp, double expected, double[] predictedOutput) {
-        // USE CROSS-ENTROPY
-        // https://www.geeksforgeeks.org/multi-layer-perceptron-learning-in-tensorflow/
-        /*
-         * L=−1/N ​∑i=1 to N​[y.i​ * log(y^​i​) + (1–y.i​) * log(1–y^​i​)]
-         * 
-         * Where:
-         * 
-         * y.i​ is the actual label.
-         * y^i​ is the predicted label.
-         * N is the number of samples.
-         */
+
         double e = 1e-7; // to gaurd against log(0)
         double loss = 0.0;
 
@@ -220,16 +229,7 @@ public class MLP {
         }
 
         return -loss / predictedOutput.length;
-        /*
-         * double sum = 0.0;
-         * for(int i = 0; i < predictedOutput.length; i ++)
-         * {
-         * sum += Math.pow((expected - predictedOutput[i]),2);
-         * }
-         * double mse = sum / predictedOutput.length;
-         * 
-         * return mse;
-         */
+
 
     }
 }
