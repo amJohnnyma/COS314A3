@@ -6,11 +6,18 @@ import java.util.regex.Pattern;
 import weka.core.pmml.Array;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 
-public class MLP {
+public class MLP implements Serializable{
 
     private List<double[]> inputsVal = new ArrayList<>(); /// full input of each
     private List<double[]> inputs = new ArrayList<>(); // 5 inputs per // one input per feature (Open, high, low, close,
@@ -22,16 +29,22 @@ public class MLP {
     private double learningRate = 0.0;
 
     // Data collection
-    private Vector<Double> losses = new Vector<Double>();
-    private Vector<Double> avgGradient = new Vector<Double>();
+    public Vector<Double> losses = new Vector<Double>();
+    public Vector<Double> avgGradient = new Vector<Double>();
     private Vector<Double> expectedValues = new Vector<Double>();
     private Vector<Double> predictedValues = new Vector<Double>();
     private Vector<Double> accuracyOverTime = new Vector<Double>();
     private Vector<Double> recallOverTime = new Vector<Double>();
     private Vector<Double> f1ScoreOverTime = new Vector<Double>();
+    public Vector<Double> avgWeights = new Vector<>();
+    public Vector<Double> avgBiases = new Vector<>();
+    Vector<Long> epochTimes = new Vector<>();
 
     ////
+    public MLP()
+    {
 
+    }
     public MLP(String file, int hiddenSize, int hiddenL, int inputSize, long seed, double learningRate) // constructor
     {
         // read data and assign inputs
@@ -127,11 +140,12 @@ public class MLP {
      * 
      */
 
-    public void trainNetwork(int iterations) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
+    public void trainNetwork(int iterations, int batchSize) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
 
-        int batchSize = 16;
+   
         for (int k = 0; k < iterations; k++) // epochs
         {
+            long start = System.nanoTime();
             shuffle(inputs, labels);
             for (int i = 0; i < inputs.size(); i += batchSize) {
                 // bacth implementation
@@ -175,6 +189,10 @@ public class MLP {
                     */
                 backwardBatch(batchInputs, batchLabels, predictions);
                 // end of batch implementation
+                long end = System.nanoTime();
+
+                epochTimes.add((end-start)/ 1_000_000); // ms
+                logWeightsAndBiases();
 
                 /*
                  * double[] input = inputs.get(i);
@@ -409,4 +427,110 @@ public class MLP {
         labels.clear();
         labels.addAll(shuffledLabels);
     }
+
+        // Method to save the model to a file
+    public void saveModel(String filename) {
+        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
+            out.writeObject(this); // Write the entire MLP object to the file
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to load the model from a file
+    public static MLP loadModel(String filename) {
+        MLP mlp = null;
+        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
+            mlp = (MLP) in.readObject(); // Read the object from the file
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return mlp;
+    }
+
+    private void logWeightsAndBiases() {
+    double totalWeight = 0.0;
+    int weightCount = 0;
+    double totalBias = 0.0;
+    int biasCount = 0;
+
+    for (Layer layer : hiddenLayers) {
+        for (Neuron neuron : layer.neurons) {
+            for (double w : neuron.weights) {
+                totalWeight += w;
+                weightCount++;
+            }
+            totalBias += neuron.bias;
+            biasCount++;
+        }
+    }
+
+    // Output neuron
+    for (double w : outputNeuron.weights) {
+        totalWeight += w;
+        weightCount++;
+    }
+    totalBias += outputNeuron.bias;
+    biasCount++;
+
+    avgWeights.add(totalWeight / weightCount);
+    avgBiases.add(totalBias / biasCount);
+}
+
+/*public void saveModel(String filename) {
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+        writer.write(inputSize + "," + hiddenSize + "," + outputSize);
+        writer.newLine();
+
+        for (double[] layerWeights : weights) {
+            for (double weight : layerWeights) {
+                writer.write(weight + ",");
+            }
+            writer.newLine();
+        }
+
+        for (double[] layerBiases : biases) {
+            for (double bias : layerBiases) {
+                writer.write(bias + ",");
+            }
+            writer.newLine();
+        }
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+ public void loadModel(String filename) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+        String[] sizes = reader.readLine().split(",");
+        inputSize = Integer.parseInt(sizes[0]);
+        hiddenSize = Integer.parseInt(sizes[1]);
+        outputSize = Integer.parseInt(sizes[2]);
+
+        weights = new ArrayList<>();
+        biases = new ArrayList<>();
+
+        for (int i = 0; i < numLayers - 1; i++) {
+            String[] weightLine = reader.readLine().split(",");
+            double[] layerWeights = Arrays.stream(weightLine)
+                                          .filter(s -> !s.isEmpty())
+                                          .mapToDouble(Double::parseDouble)
+                                          .toArray();
+            weights.add(layerWeights);
+        }
+
+        for (int i = 0; i < numLayers - 1; i++) {
+            String[] biasLine = reader.readLine().split(",");
+            double[] layerBiases = Arrays.stream(biasLine)
+                                         .filter(s -> !s.isEmpty())
+                                         .mapToDouble(Double::parseDouble)
+                                         .toArray();
+            biases.add(layerBiases);
+        }
+
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+*/
 }

@@ -1,8 +1,9 @@
 package com;
 
+import java.io.Serializable;
 import java.util.*;
 
-class Neuron {
+class Neuron implements Serializable{
 
     double[] weights; // weights to each othe
     double bias;

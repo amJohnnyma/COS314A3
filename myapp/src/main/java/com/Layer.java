@@ -1,6 +1,8 @@
 package com;
 
-class Layer {
+import java.io.Serializable;
+
+class Layer implements Serializable{
     Neuron[] neurons;
 
     public Layer(int inputSize, int numNeurons, long seed) {

@@ -5,33 +5,49 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import javax.swing.*;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import java.util.Vector;
 
 public class Graph {
 
-    private Vector<Double> values;
+    private Vector<Double> losses;
+    private Vector<Double> avgWeights;
+    private Vector<Double> avgBiases;
+    private Vector<Long> epochTimes;
 
-    public Graph(Vector<Double> losses) {
-        this.values = losses;
+    public Graph(Vector<Double> losses, Vector<Double> avgWeights, Vector<Double> avgBiases, Vector<Long> epochTimes) {
+        this.losses = losses;
+        this.avgWeights = avgWeights;
+        this.avgBiases = avgBiases;
+        this.epochTimes = epochTimes;
     }
 
-    public void createAndShowChart() {
+    public void createAndShowChart(String name) {
         // Create a dataset using the losses
         DefaultCategoryDataset dataset = createDataset();
 
-        // Create a chart based on the dataset
         JFreeChart chart = ChartFactory.createLineChart(
-                "Loss over Time",  // Chart title
-                "Epoch",           // X-axis label
-                "Loss",            // Y-axis label
-                dataset,           // Dataset
-                PlotOrientation.VERTICAL,  // Orientation (vertical)
-                true,              // Include legend
-                true,              // Tooltips
-                false              // URLs
+                "Training Metrics Over Time",
+                "Epoch",
+                "Value",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false
         );
 
+
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
+        saveChartAsPNG(chart, name, 800, 600);
+
         // Create a panel to display the chart
+        /*
         ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new java.awt.Dimension(800, 600));
 
@@ -41,16 +57,36 @@ public class Graph {
         frame.getContentPane().add(chartPanel);
         frame.pack();
         frame.setVisible(true);
+        */
     }
 
     private DefaultCategoryDataset createDataset() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-        // Loop through the losses vector and add data to the dataset
-        for (int i = 0; i < values.size(); i++) {
-            dataset.addValue(values.get(i), "Loss", Integer.toString(i + 1));  // Use epoch index for x-axis
+        for (int i = 0; i < losses.size(); i++) {
+            dataset.addValue(losses.get(i), "Loss", Integer.toString(i + 1));
+            if (avgWeights != null && i < avgWeights.size())
+                dataset.addValue(avgWeights.get(i), "Avg Weights", Integer.toString(i + 1));
+            if (avgBiases != null && i < avgBiases.size())
+                dataset.addValue(avgBiases.get(i), "Avg Biases", Integer.toString(i + 1));
+            if (epochTimes != null && i < epochTimes.size())
+                dataset.addValue(epochTimes.get(i) / 1000.0, "Epoch Time (s)", Integer.toString(i + 1));
         }
 
         return dataset;
+    }
+
+        private void saveChartAsPNG(JFreeChart chart, String fileName, int width, int height) {
+        try {
+            // Create a BufferedImage and draw the chart to it
+            BufferedImage bufferedImage = chart.createBufferedImage(width, height);
+
+            // Save the BufferedImage as a PNG file
+            File file = new File(fileName);
+            ImageIO.write(bufferedImage, "PNG", file);
+            System.out.println("Chart saved as " + fileName);
+        } catch (IOException e) {
+            System.err.println("Error saving chart: " + e.getMessage());
+        }
     }
 }
