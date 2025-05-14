@@ -30,7 +30,7 @@ class Neuron
             Tanh (Hyperbolic Tangent): tanh⁡(z)=21+e−2z–1tanh(z)=1+e−2z2​–1
          */
     }
-
+    
     public double weightedSum(double[] inputs)
     {
         double sum = bias;
