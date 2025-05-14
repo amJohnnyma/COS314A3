@@ -7,20 +7,33 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-class Layer // input, hidden, output //currently not used //probably doesnt need to exist
-{
-    public Vector<Neuron> neurons = new Vector<Neuron>();
+class Layer {
+    Neuron[] neurons;
+
+    public Layer(int inputSize, int numNeurons, long seed) {
+        neurons = new Neuron[numNeurons];
+        for (int i = 0; i < numNeurons; i++) {
+            neurons[i] = new Neuron(inputSize, seed);
+        }
+    }
+
+    public double[] forward(double[] input) {
+        double[] outputs = new double[neurons.length];
+        for (int i = 0; i < neurons.length; i++) {
+            outputs[i] = neurons[i].activate(input);
+        }
+        return outputs;
+    }
 }
 
 public class MLP {
 
     private List<double[]> inputsVal = new ArrayList<>(); /// full input of each
     private List<double[]> inputs = new ArrayList<>(); // 5 inputs per // one input per feature (Open, high, low, close,
-                                                       // adj close)
+    private List<Layer> hiddenLayers = new ArrayList<>();
     private List<String> inputsTime = new ArrayList<>(); // Orderof each 5 inputs//might be useless
     private List<Double> labels = new ArrayList<>(); // expected output (last input)
     private Neuron outputNeuron; // one per label
-    private Neuron[] hiddenLayer;
     private int numSamples = 0;
     private double learningRate = 0.0;
 
@@ -37,8 +50,7 @@ public class MLP {
 
     ////
 
-    // file to read, how many hidden layers, how many inputs (5)
-    public MLP(String file, int hiddenSize, int inputSize, long seed, double learningRate) // constructor
+    public MLP(String file, int hiddenSize, int hiddenL, int inputSize, long seed, double learningRate) // constructor
     {
         // read data and assign inputs
 
@@ -88,9 +100,13 @@ public class MLP {
 
         }
 
-        hiddenLayer = new Neuron[hiddenSize];
-        for (int k = 0; k < hiddenSize; k++) {
-            hiddenLayer[k] = new Neuron(inputSize, seed);
+
+        int currentInputSize = inputSize;
+        for(int i =0; i < hiddenL; i++)
+        {
+            Layer layer = new Layer(currentInputSize, hiddenSize,seed);
+            hiddenLayers.add(layer);
+            currentInputSize = hiddenSize;
         }
 
         outputNeuron = new Neuron(hiddenSize, seed);
@@ -132,12 +148,37 @@ public class MLP {
      */
 
     public void trainNetwork(int iterations) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
-        for (int k = 0; k < iterations; k++) {
+    
+        for(int k = 0; k < iterations; k++) //epochs
+        {
+            for(int i = 0; i < inputs.size(); i++)            
+            {
+                double[] input = inputs.get(i);
+                double[] out = input;
+                double expectedOutput = labels.get(i);
+                for(Layer layer : hiddenLayers)
+                {
+                    out = layer.forward(out); //feedforward each neuron in the layer
+                }
+                double prediction = outputNeuron.activate(out); //final prediction
+
+                double lf = lossFunction(out, expectedOutput, prediction);
+                losses.add(lf);
+                 System.out.println("Expected: " + expectedOutput + " Predicted: " + prediction);
+                System.out.println("Loss: " + lf);
+
+                backward(out, expectedOutput, prediction);
+
+            } 
+        }
+    
+    
+        /*   for (int k = 0; k < iterations; k++) {
             for (int i = 0; i < inputs.size(); i++) {
                 double[] input = inputs.get(i);
                 double expectedOutput = labels.get(i);
 
-                System.out.println("Input size: " + input.length);
+             //   System.out.println("Input size: " + input.length);
                 double[] predictedOutput = feedForward(input);
 
                 double lf = lossFunction(input, expectedOutput, predictedOutput);
@@ -152,11 +193,7 @@ public class MLP {
             //    System.out.println("Loss: " + lf);
 
                 // 1. gradient calculation
-                /*
-                 * A gradient is a derivative — it tells you how fast something is changing.
 
-                 * //Will use Batch gradient descent since small data set
-                 */
 
                 // gradient at hidden layer
                 double delta = predictedOutput[0] - expectedOutput;
@@ -192,7 +229,7 @@ public class MLP {
             }
 
         }
-
+*/
     }
 
     public void testSolution() {
@@ -206,6 +243,62 @@ public class MLP {
         return matcher.find();
     }
 
+    public void backward(double[] input, double expectedOutput, double prediction)
+    {
+            // Step 1: Compute the error (delta) at the output layer
+    double delta = prediction - expectedOutput;
+    
+    // Update output neuron weights (outputNeuron is the final layer neuron)
+    for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
+        double gradient = delta * hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
+        outputNeuron.updateWeights(learningRate, gradient);
+    }
+
+    
+
+
+
+    // Update output neuron bias
+    outputNeuron.bias -= learningRate * delta;
+
+    // Step 2: Backpropagate the error through hidden layers
+    double[] deltaHidden = new double[hiddenLayers.get(hiddenLayers.size() - 1).neurons.length];
+    
+    // Loop through hidden layers backwards
+    for (int l = hiddenLayers.size() - 1; l >= 0; l--) {
+        Layer layer = hiddenLayers.get(l);
+        double[] newDeltaHidden = new double[layer.neurons.length];
+        
+        // Calculate delta for each neuron in this layer
+        for (int j = 0; j < layer.neurons.length; j++) {
+            Neuron neuron = layer.neurons[j];
+            double out = neuron.output;
+            
+            // Backpropagate delta through each neuron
+            for (int k = 0; k < neuron.weights.length; k++) {
+                double inputToThisNeuron = neuron.input[k]; // saved during forward pass
+                double gradient = deltaHidden[j] * inputToThisNeuron;
+                neuron.weights[k] -= learningRate * gradient;
+            }
+
+            // Update the neuron bias
+            neuron.bias -= learningRate * deltaHidden[j];
+
+            // Propagate delta to the next layer (if not the first hidden layer)
+            if (l > 0) {
+                for (int k = 0; k < hiddenLayers.get(l - 1).neurons.length; k++) {
+                    newDeltaHidden[k] += deltaHidden[j] * neuron.weights[k] * 
+                                    hiddenLayers.get(l - 1).neurons[k].output * (1 - hiddenLayers.get(l - 1).neurons[k].output);
+                }
+                
+            }
+        }
+
+        deltaHidden = newDeltaHidden; // Update delta for next iteration (previous layer)
+    }
+    }
+
+    /*
     public double[] feedForward(double[] input) {
         double[] hiddenOutputs = new double[hiddenLayer.length];
         for (int i = 0; i < hiddenLayer.length; i++) {
@@ -216,20 +309,24 @@ public class MLP {
         return new double[] { output };
 
     }
+        */
 
-    // not sure if i must use predictedOutput.length or numSamples
-    public double lossFunction(double[] inp, double expected, double[] predictedOutput) {
+    public double lossFunction(double[] inp, double expected, double predictedOutput) {
 
         double e = 1e-7; // to gaurd against log(0)
         double loss = 0.0;
 
-        for (int i = 0; i < predictedOutput.length; i++) {
-            loss += expected * Math.log(Math.max(e, predictedOutput[i]))
-                    + (1 - expected) * Math.log(Math.max(e, 1 - predictedOutput[i]));
-        }
+        loss = expected * Math.log(Math.max(e, predictedOutput))
+            + (1 - expected) * Math.log(Math.max(e, 1 - predictedOutput));
+        
 
-        return -loss / predictedOutput.length;
+        return -loss;
 
 
+    }
+
+    public Vector<Double> getLosses()
+    {
+        return this.losses;
     }
 }

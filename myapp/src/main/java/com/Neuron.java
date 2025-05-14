@@ -8,6 +8,7 @@ class Neuron
     double bias;
     double output;
     double delta;
+    double[] input;
 
     public Neuron(int inputSize, long seed) {
         weights = new double[inputSize];
@@ -15,11 +16,12 @@ class Neuron
         for (int i = 0; i < inputSize; i++) { //small random weight for each input
             weights[i] = r.nextGaussian() * 0.01; // small random init
         }
-        bias = 0;
+        bias = r.nextDouble() - 0.5;;
 
     }
 
     public double activate(double[] inputs) {
+        this.input = inputs.clone();
         double z = bias + weightedSum(inputs);
         output = sigmoid(z); 
         return output;
@@ -33,7 +35,7 @@ class Neuron
     
     public double weightedSum(double[] inputs)
     {
-        double sum = bias;
+        double sum = 0;
         for(int k =0; k < inputs.length;k++)
         {
             sum += weights[k] * inputs[k];
