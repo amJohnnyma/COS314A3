@@ -2,6 +2,9 @@ package com;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import weka.core.pmml.Array;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -126,24 +129,67 @@ public class MLP {
 
     public void trainNetwork(int iterations) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
 
+        int batchSize = 16;
         for (int k = 0; k < iterations; k++) // epochs
         {
-            for (int i = 0; i < inputs.size(); i++) {
-                double[] input = inputs.get(i);
-                double[] out = input;
-                double expectedOutput = labels.get(i);
-                for (Layer layer : hiddenLayers) {
-                    out = layer.forward(out); // feedforward each neuron in the layer
-                }
-                double prediction = outputNeuron.activate(out); // final prediction
+            shuffle(inputs, labels);
+            for (int i = 0; i < inputs.size(); i += batchSize) {
+                // bacth implementation
+                List<double[]> batchInputs = new ArrayList<>();
+                List<Double> batchLabels = new ArrayList<>();
 
-                double lf = lossFunction(out, expectedOutput, prediction);
-                losses.add(lf);
+                for (int j = i; j < i + batchSize && j < inputs.size(); j++) {
+                    batchInputs.add(inputs.get(j));
+                    batchLabels.add(labels.get(j));
+                }
+
+                double batchLoss = 0.0;
+
+                List<double[]> activations = new ArrayList<>();
+                List<Double> predictions = new ArrayList<>();
+
+                for (int b = 0; b < batchInputs.size(); b++) {
+                    double[] input = batchInputs.get(b);
+                    double[] out = input;
+
+                    for (Layer layer : hiddenLayers) {
+                        out = layer.forward(out);
+                    }
+
+                    double prediction = outputNeuron.activate(out);
+                    activations.add(out);
+                    predictions.add(prediction);
+
+                    double expected = batchLabels.get(b);
+                    batchLoss += lossFunction(out, expected, prediction); // accumulate loss
+                }
+
+                batchLoss /= batchInputs.size();
+                losses.add(batchLoss);
+
+                        // Backward pass on each sample
+                for (int b = 0; b < batchInputs.size(); b++) {
+                    backward(activations.get(b), batchLabels.get(b), predictions.get(b));
+                }
+                // end of batch implementation
+
+                /*
+                 * double[] input = inputs.get(i);
+                 * double[] out = input;
+                 * double expectedOutput = labels.get(i);
+                 * for (Layer layer : hiddenLayers) {
+                 * out = layer.forward(out); // feedforward each neuron in the layer
+                 * }
+                 * double prediction = outputNeuron.activate(out); // final prediction
+                 * 
+                 * double lf = lossFunction(out, expectedOutput, prediction);
+                 * losses.add(lf);
+                 
                 // System.out.println("Expected: " + expectedOutput + " Predicted: " +
                 // prediction);
                 // System.out.println("Loss: " + lf);
 
-                backward(out, expectedOutput, prediction);
+                backward(out, expectedOutput, prediction); */
 
             }
         }
@@ -249,4 +295,28 @@ public class MLP {
     public Vector<Double> getGradients() {
         return this.avgGradient;
     }
+
+    public static void shuffle(List<double[]> inputs, List<Double> labels) {
+    List<Integer> indices = new ArrayList<>();
+    for (int i = 0; i < inputs.size(); i++) {
+        indices.add(i);
+    }
+
+    Collections.shuffle(indices); // Randomly shuffle indices
+
+    List<double[]> shuffledInputs = new ArrayList<>();
+    List<Double> shuffledLabels = new ArrayList<>();
+
+    for (int index : indices) {
+        shuffledInputs.add(inputs.get(index));
+        shuffledLabels.add(labels.get(index));
+    }
+
+    // Replace original lists
+    inputs.clear();
+    inputs.addAll(shuffledInputs);
+
+    labels.clear();
+    labels.addAll(shuffledLabels);
+}
 }
