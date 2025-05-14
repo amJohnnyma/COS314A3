@@ -24,10 +24,11 @@ public class MLP {
     private List<Double> labels = new ArrayList<>(); //expected output (last input)
     private Neuron outputNeuron;
     private Neuron[] hiddenLayer;
-    private int numSamples;
+    private int numSamples = 0;
+    private double learningRate = 0.0;
 
     //file to read, how many hidden layers, how many inputs (5)
-    public MLP(String file, int hiddenSize, int inputSize, long seed) //constructor
+    public MLP(String file, int hiddenSize, int inputSize, long seed, double learningRate) //constructor
     {
         //read data and assign inputs
 
@@ -35,6 +36,7 @@ public class MLP {
     // -1.104550546,-1.103639854,-1.103311839,-1.100806056,-1.460681595,0
     //inputsval = numbers
     //inputstime = time of day
+        this.learningRate = learningRate;
 
         String csvFile = "src/data/BTC_train.csv";
         String line;
@@ -128,18 +130,85 @@ public class MLP {
     {
         for(int k = 0; k < iterations; k ++)
         {
+            double[] losses = new double[inputsVal.size()];
+            double[] gradientDescent = new double[inputsVal.size()];
             for (int i = 0; i < inputsVal.size(); i++) {
-            double[] input = inputs.get(i);
-            double expectedOutput = labels.get(i);
+                double[] input = inputs.get(i);
+                double expectedOutput = labels.get(i);
 
-            double[] predictedOutput = feedForward(input);
+                double[] predictedOutput = feedForward(input);
 
-            double lf = lossFunction(input, expectedOutput, predictedOutput);
+                double lf = lossFunction(input, expectedOutput, predictedOutput);
 
-            System.out.println("Expected: " + expectedOutput + " Predicted: " + predictedOutput[0]);
-            System.out.println("Loss: " + lf);
-            //back prop
+                losses[i] = lf;
+
+                System.out.println("Expected: " + expectedOutput + " Predicted: " + predictedOutput[0]);
+                System.out.println("Loss: " + lf);
+
+                //gradient at output layer?
+
+                //gradient at hidden layer
+                double delta = predictedOutput[0] - expectedOutput;
+                for(int j = 0; j < hiddenLayer.length; j++)
+                {
+                    //not sure about this loop
+                    for(int in = 0; in < input.length; in++)
+                    {
+                       double dw = hiddenLayer[j].gradientLoss(delta, input[in]);
+                        hiddenLayer[j].updateWeights(learningRate, dw);
+                    }
+                }
+
+                //propagate back (chain rule)
+                double[] deltaHidden = new double[hiddenLayer.length];
+                for(int j = 0; j < hiddenLayer.length;j++)
+                {
+                    for(int w = 0; w < hiddenLayer[j].weights.length; w++)
+                    {
+                        
+                    }
+                }
+                
+
             }
+
+            //back prop
+
+            //1. gradient calculation
+            /*
+            A gradient is a derivative — it tells you how fast something is changing.
+
+            In this case:
+            ∂Loss∂w
+            ∂w∂Loss​
+
+            means: "How does the Loss change when I change weight w?"
+
+
+            The chain rule from calculus helps compute this:
+            dLdw=dLdz⋅dzdw
+            dwdL​=dzdL​⋅dwdz​
+
+                LL is the loss
+
+                zz is some intermediate value (e.g., output of a neuron)
+
+                ww is a weight
+
+
+            Type	                            Loss Computation	                            When Gradients Are Calculated
+            Batch Gradient Descent	            After loss over entire dataset	                Once per epoch
+            Stochastic Gradient Descent (SGD)	After loss on a single training example	        After each sample
+            Mini-Batch Gradient Descent	        After loss over a small batch of samples	    Once per mini-batch
+          
+                //Will use Batch gradient descent since small data set
+            */
+// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
+
+
+
+            //2. error propagation
+            //3. gradient descent
         }
 
     }
@@ -171,8 +240,7 @@ public class MLP {
     //not sure if i must use predictedOutput.length or numSamples
     public double lossFunction(double[] inp, double expected, double[] predictedOutput)
     {
-        // THIS IS NOT A REGRESSION PROBLEM THIS FORMULA IS WRONG
-        // SHOULD USE CROSS-ENTROPY
+        // USE CROSS-ENTROPY
         // https://www.geeksforgeeks.org/multi-layer-perceptron-learning-in-tensorflow/
         /*
          L=−1/N ​∑i=1 to N​[y.i​ * log(y^​i​) + (1–y.i​) * log(1–y^​i​)]
@@ -182,18 +250,17 @@ public class MLP {
             y.i​ is the actual label.
             y^i​ is the predicted label.
             N is the number of samples.
+        */
+        double e = 1e-7; //to gaurd against log(0)
+        double loss = 0.0;
 
-            //needs gaurd against log(0)
-            double e = 1e-7; // log(max(predicted[i], e))
-            double loss = 0.0;
-            for(i to predictedOutput.length)
-            {
-                loss += expected * log(predicted[i]) + (1-expected) * log(1-predicted[i]);
-            }
+        for(int i = 0; i < predictedOutput.length; i ++)
+        {
+            loss += expected * Math.log(Math.max(e, predictedOutput[i])) + (1-expected) * Math.log(Math.max(e, 1-predictedOutput[i]));
+        }
 
-            return  -loss / predicted.length;
-
-         */
+        return -loss / predictedOutput.length;
+        /*
         double sum = 0.0;
         for(int i = 0; i < predictedOutput.length; i ++)
         {
@@ -202,5 +269,7 @@ public class MLP {
         double mse = sum / predictedOutput.length;
 
         return mse;
+         */
+
     }
 }

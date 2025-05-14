@@ -44,4 +44,25 @@ class Neuron
     private double sigmoid(double x) {
         return 1.0 / (1.0 + Math.exp(-x));
     }
+
+    public double gradientLoss(double deltaOutput, double input) {
+        // Compute the gradient of the loss with respect to the weight
+        // deltaOutput: the error term at this neuron (how much the output of the neuron deviates from the expected output)
+        // input: the input to this neuron (the feature value or output from the previous layer)
+        
+        // This assumes the sigmoid activation function, so we need to multiply by the derivative of the sigmoid
+        // d(sigmoid)/dz = sigmoid(z) * (1 - sigmoid(z))
+        
+        double gradient = deltaOutput * input; // Gradient with respect to the weight
+        return gradient;
+    }
+
+    public void updateWeights(double learningRate, double deltaWeight)
+    {
+         
+        for(int i =0; i < weights.length; i++)
+        {
+            weights[i] -= (learningRate * deltaWeight);
+        }
+    }
 }
