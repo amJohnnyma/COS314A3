@@ -8,8 +8,8 @@ public class Main
 {
     public static void main( String[] args )
     {
-        //System.out.println( "Hello World!" );
-        MLP mlp = new MLP("src/data/BTC_train.csv", 10, 1, 5, 0, 0.001);
+        //HS: 16-32 HL: 1-2 LR: 0.0001 - 0.00001
+        MLP mlp = new MLP("src/data/BTC_train.csv", 16, 1, 5, 0, 0.0005); 
         mlp.trainNetwork(100);
 
         //graphing
