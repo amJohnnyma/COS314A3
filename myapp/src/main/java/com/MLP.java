@@ -7,24 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-class Layer {
-    Neuron[] neurons;
-
-    public Layer(int inputSize, int numNeurons, long seed) {
-        neurons = new Neuron[numNeurons];
-        for (int i = 0; i < numNeurons; i++) {
-            neurons[i] = new Neuron(inputSize, seed);
-        }
-    }
-
-    public double[] forward(double[] input) {
-        double[] outputs = new double[neurons.length];
-        for (int i = 0; i < neurons.length; i++) {
-            outputs[i] = neurons[i].activate(input);
-        }
-        return outputs;
-    }
-}
 
 public class MLP {
 
@@ -164,8 +146,8 @@ public class MLP {
 
                 double lf = lossFunction(out, expectedOutput, prediction);
                 losses.add(lf);
-                 System.out.println("Expected: " + expectedOutput + " Predicted: " + prediction);
-                System.out.println("Loss: " + lf);
+             //    System.out.println("Expected: " + expectedOutput + " Predicted: " + prediction);
+            //    System.out.println("Loss: " + lf);
 
                 backward(out, expectedOutput, prediction);
 
@@ -248,11 +230,15 @@ public class MLP {
             // Step 1: Compute the error (delta) at the output layer
     double delta = prediction - expectedOutput;
     
+    double agrad = 0.0;
     // Update output neuron weights (outputNeuron is the final layer neuron)
     for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
         double gradient = delta * hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
         outputNeuron.updateWeights(learningRate, gradient);
+        agrad += gradient;
     }
+    agrad /= hiddenLayers.get(hiddenLayers.size() - 1).neurons.length;
+    avgGradient.add(agrad);
 
     
 
@@ -274,12 +260,19 @@ public class MLP {
             Neuron neuron = layer.neurons[j];
             double out = neuron.output;
             
+            //for data
+            double avgGrad = 0.0;
             // Backpropagate delta through each neuron
             for (int k = 0; k < neuron.weights.length; k++) {
                 double inputToThisNeuron = neuron.input[k]; // saved during forward pass
                 double gradient = deltaHidden[j] * inputToThisNeuron;
                 neuron.weights[k] -= learningRate * gradient;
+               // System.out.println("Gradient: " + gradient);
+                avgGrad += gradient;
+                
             }
+            avgGrad /= neuron.weights.length;
+            avgGradient.add(avgGrad);
 
             // Update the neuron bias
             neuron.bias -= learningRate * deltaHidden[j];
@@ -287,8 +280,9 @@ public class MLP {
             // Propagate delta to the next layer (if not the first hidden layer)
             if (l > 0) {
                 for (int k = 0; k < hiddenLayers.get(l - 1).neurons.length; k++) {
-                    newDeltaHidden[k] += deltaHidden[j] * neuron.weights[k] * 
-                                    hiddenLayers.get(l - 1).neurons[k].output * (1 - hiddenLayers.get(l - 1).neurons[k].output);
+                   double z = hiddenLayers.get(l - 1).neurons[k].z; // assume you store this in reluActivate()
+                    double reluDeriv = z > 0 ? 1.0 : 0.0; 
+                    newDeltaHidden[k] += deltaHidden[j] * neuron.weights[k] * reluDeriv;
                 }
                 
             }
@@ -298,18 +292,7 @@ public class MLP {
     }
     }
 
-    /*
-    public double[] feedForward(double[] input) {
-        double[] hiddenOutputs = new double[hiddenLayer.length];
-        for (int i = 0; i < hiddenLayer.length; i++) {
-            hiddenOutputs[i] = hiddenLayer[i].activate(input);
-        }
 
-        double output = outputNeuron.activate(hiddenOutputs);
-        return new double[] { output };
-
-    }
-        */
 
     public double lossFunction(double[] inp, double expected, double predictedOutput) {
 
@@ -328,5 +311,10 @@ public class MLP {
     public Vector<Double> getLosses()
     {
         return this.losses;
+    }
+
+    public Vector<Double> getGradients()
+    {
+        return this.avgGradient;
     }
 }

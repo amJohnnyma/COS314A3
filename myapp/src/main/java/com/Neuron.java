@@ -7,23 +7,26 @@ class Neuron
     double[] weights; //weights to each othe
     double bias;
     double output;
+    double z;
     double delta;
     double[] input;
 
     public Neuron(int inputSize, long seed) {
         weights = new double[inputSize];
         Random r = new Random(seed); //use seed somehow
+        double limit = Math.sqrt(6.0 / (inputSize + 1));
         for (int i = 0; i < inputSize; i++) { //small random weight for each input
-            weights[i] = r.nextGaussian() * 0.01; // small random init
+            weights[i] = r.nextDouble() * 2 * limit - limit; //xavier init
         }
-        bias = r.nextDouble() - 0.5;;
+        bias = 0;
 
     }
 
     public double activate(double[] inputs) {
         this.input = inputs.clone();
         double z = bias + weightedSum(inputs);
-        output = sigmoid(z); 
+        this.z = z;
+        this.output = sigmoid(z); 
         return output;
 
         /*
@@ -31,6 +34,16 @@ class Neuron
             ReLU (Rectified Linear Unit): f(z)=max⁡(0,z)f(z)=max(0,z)
             Tanh (Hyperbolic Tangent): tanh⁡(z)=21+e−2z–1tanh(z)=1+e−2z2​–1
          */
+    }
+
+        public double reluActivate(double[] inputs) {
+        this.input = inputs.clone();
+        double z = bias + weightedSum(inputs);
+        this.z = z;
+        this.output = relu(z); 
+        return output;
+
+ 
     }
     
     public double weightedSum(double[] inputs)
@@ -43,9 +56,20 @@ class Neuron
         return sum;
     }
 
-    private double sigmoid(double x) {
-        return 1.0 / (1.0 + Math.exp(-x));
+    private double sigmoid(double z) {
+        if (z < -40) return 0;
+        if (z > 40) return 1;
+        return 1.0 / (1.0 + Math.exp(-z));
     }
+
+    private double relu(double x) {
+    return Math.max(0, x);
+    }
+
+    private double reluDerivative(double x) {
+        return x > 0 ? 1 : 0;
+    }
+
 
     public double gradientLoss(double deltaOutput, double input) {
         // Compute the gradient of the loss with respect to the weight
@@ -55,7 +79,7 @@ class Neuron
         // This assumes the sigmoid activation function, so we need to multiply by the derivative of the sigmoid
         // d(sigmoid)/dz = sigmoid(z) * (1 - sigmoid(z))
         
-        double gradient = deltaOutput * input; // Gradient with respect to the weight
+        double gradient = deltaOutput * input * output * (1-output); // Gradient with respect to the weight
         return gradient;
     }
 
@@ -66,5 +90,6 @@ class Neuron
         {
             weights[i] -= (learningRate * deltaWeight);
         }
+        bias -= learningRate * deltaWeight;
     }
 }

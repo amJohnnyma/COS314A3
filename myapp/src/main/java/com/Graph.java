@@ -7,12 +7,12 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import javax.swing.*;
 import java.util.Vector;
 
-public class LossGraph {
+public class Graph {
 
-    private Vector<Double> losses;
+    private Vector<Double> values;
 
-    public LossGraph(Vector<Double> losses) {
-        this.losses = losses;
+    public Graph(Vector<Double> losses) {
+        this.values = losses;
     }
 
     public void createAndShowChart() {
@@ -47,8 +47,8 @@ public class LossGraph {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         // Loop through the losses vector and add data to the dataset
-        for (int i = 0; i < losses.size(); i++) {
-            dataset.addValue(losses.get(i), "Loss", Integer.toString(i + 1));  // Use epoch index for x-axis
+        for (int i = 0; i < values.size(); i++) {
+            dataset.addValue(values.get(i), "Loss", Integer.toString(i + 1));  // Use epoch index for x-axis
         }
 
         return dataset;
