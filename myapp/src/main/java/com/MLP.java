@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-
 public class MLP {
 
     private List<double[]> inputsVal = new ArrayList<>(); /// full input of each
@@ -19,7 +18,7 @@ public class MLP {
     private int numSamples = 0;
     private double learningRate = 0.0;
 
-    //Data collection
+    // Data collection
     private Vector<Double> losses = new Vector<Double>();
     private Vector<Double> avgGradient = new Vector<Double>();
     private Vector<Double> expectedValues = new Vector<Double>();
@@ -27,8 +26,6 @@ public class MLP {
     private Vector<Double> accuracyOverTime = new Vector<Double>();
     private Vector<Double> recallOverTime = new Vector<Double>();
     private Vector<Double> f1ScoreOverTime = new Vector<Double>();
-    
-
 
     ////
 
@@ -82,11 +79,9 @@ public class MLP {
 
         }
 
-
         int currentInputSize = inputSize;
-        for(int i =0; i < hiddenL; i++)
-        {
-            Layer layer = new Layer(currentInputSize, hiddenSize,seed);
+        for (int i = 0; i < hiddenL; i++) {
+            Layer layer = new Layer(currentInputSize, hiddenSize, seed);
             hiddenLayers.add(layer);
             currentInputSize = hiddenSize;
         }
@@ -130,88 +125,29 @@ public class MLP {
      */
 
     public void trainNetwork(int iterations) {// https://chatgpt.com/share/6824badd-a01c-8012-bb91-21d7c211a6a0
-    
-        for(int k = 0; k < iterations; k++) //epochs
+
+        for (int k = 0; k < iterations; k++) // epochs
         {
-            for(int i = 0; i < inputs.size(); i++)            
-            {
+            for (int i = 0; i < inputs.size(); i++) {
                 double[] input = inputs.get(i);
                 double[] out = input;
                 double expectedOutput = labels.get(i);
-                for(Layer layer : hiddenLayers)
-                {
-                    out = layer.forward(out); //feedforward each neuron in the layer
+                for (Layer layer : hiddenLayers) {
+                    out = layer.forward(out); // feedforward each neuron in the layer
                 }
-                double prediction = outputNeuron.activate(out); //final prediction
+                double prediction = outputNeuron.activate(out); // final prediction
 
                 double lf = lossFunction(out, expectedOutput, prediction);
                 losses.add(lf);
-             //    System.out.println("Expected: " + expectedOutput + " Predicted: " + prediction);
-            //    System.out.println("Loss: " + lf);
+                // System.out.println("Expected: " + expectedOutput + " Predicted: " +
+                // prediction);
+                // System.out.println("Loss: " + lf);
 
                 backward(out, expectedOutput, prediction);
 
-            } 
-        }
-    
-    
-        /*   for (int k = 0; k < iterations; k++) {
-            for (int i = 0; i < inputs.size(); i++) {
-                double[] input = inputs.get(i);
-                double expectedOutput = labels.get(i);
-
-             //   System.out.println("Input size: " + input.length);
-                double[] predictedOutput = feedForward(input);
-
-                double lf = lossFunction(input, expectedOutput, predictedOutput);
-
-                //used for graphing
-                losses.add(lf);
-
-                expectedValues.add(expectedOutput);
-                predictedValues.add(predictedOutput[0]);
-
-            //    System.out.println("Expected: " + expectedOutput + " Predicted: " + predictedOutput[0]);
-            //    System.out.println("Loss: " + lf);
-
-                // 1. gradient calculation
-
-
-                // gradient at hidden layer
-                double delta = predictedOutput[0] - expectedOutput;
-                // update weights of output neuron
-                double avgGrad = 0.0;
-                for (int j = 0; j < hiddenLayer.length; j++) {
-                    double gradient = delta * hiddenLayer[j].output; // dL/dW = delta * activation
-                    outputNeuron.updateWeights(learningRate, gradient);
-                    avgGrad += gradient;
-                }                
-                avgGrad /= hiddenLayer.length;
-                avgGradient.add(avgGrad);
-                // update bias
-                outputNeuron.bias -= learningRate * delta;
-
-                // 2. error propagation
-                // propagate back (chain rule) hidden layer
-                double[] deltaHidden = new double[hiddenLayer.length];
-                for (int j = 0; j < hiddenLayer.length; j++) {
-                    deltaHidden[j] = delta * outputNeuron.weights[j] * hiddenLayer[j].output
-                            * (1 - hiddenLayer[j].output);
-                }
-
-                // 3. gradient descent
-                // update weights of hidden neurons
-                for (int j = 0; j < hiddenLayer.length; j++) {
-                    for (int in = 0; in < input.length; in++) {
-                        double dw = deltaHidden[j] * input[in];
-                        hiddenLayer[j].updateWeights(learningRate, dw);
-                    }
-                    hiddenLayer[j].bias -= learningRate * deltaHidden[j];
-                }
             }
-
         }
-*/
+
     }
 
     public void testSolution() {
@@ -225,74 +161,74 @@ public class MLP {
         return matcher.find();
     }
 
-    public void backward(double[] input, double expectedOutput, double prediction)
-    {
-            // Step 1: Compute the error (delta) at the output layer
-    double delta = prediction - expectedOutput;
-    
-    double agrad = 0.0;
-    // Update output neuron weights (outputNeuron is the final layer neuron)
-    for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
-        double gradient = delta * hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
-        outputNeuron.updateWeights(learningRate, gradient);
-        agrad += gradient;
-    }
-    agrad /= hiddenLayers.get(hiddenLayers.size() - 1).neurons.length;
-    avgGradient.add(agrad);
+    public void backward(double[] input, double expectedOutput, double prediction) {
+        // Step 1: Compute the error (delta) at the output layer
+        double delta = prediction - expectedOutput;
 
-    
-
-
-
-    // Update output neuron bias
-    outputNeuron.bias -= learningRate * delta;
-
-    // Step 2: Backpropagate the error through hidden layers
-    double[] deltaHidden = new double[hiddenLayers.get(hiddenLayers.size() - 1).neurons.length];
-    
-    // Loop through hidden layers backwards
-    for (int l = hiddenLayers.size() - 1; l >= 0; l--) {
-        Layer layer = hiddenLayers.get(l);
-        double[] newDeltaHidden = new double[layer.neurons.length];
-        
-        // Calculate delta for each neuron in this layer
-        for (int j = 0; j < layer.neurons.length; j++) {
-            Neuron neuron = layer.neurons[j];
-            double out = neuron.output;
-            
-            //for data
-            double avgGrad = 0.0;
-            // Backpropagate delta through each neuron
-            for (int k = 0; k < neuron.weights.length; k++) {
-                double inputToThisNeuron = neuron.input[k]; // saved during forward pass
-                double gradient = deltaHidden[j] * inputToThisNeuron;
-                neuron.weights[k] -= learningRate * gradient;
-               // System.out.println("Gradient: " + gradient);
-                avgGrad += gradient;
-                
-            }
-            avgGrad /= neuron.weights.length;
-            avgGradient.add(avgGrad);
-
-            // Update the neuron bias
-            neuron.bias -= learningRate * deltaHidden[j];
-
-            // Propagate delta to the next layer (if not the first hidden layer)
-            if (l > 0) {
-                for (int k = 0; k < hiddenLayers.get(l - 1).neurons.length; k++) {
-                   double z = hiddenLayers.get(l - 1).neurons[k].z; // assume you store this in reluActivate()
-                    double reluDeriv = z > 0 ? 1.0 : 0.0; 
-                    newDeltaHidden[k] += deltaHidden[j] * neuron.weights[k] * reluDeriv;
-                }
-                
-            }
+        double agrad = 0.0;
+        // Update output neuron weights (outputNeuron is the final layer neuron)
+        for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
+            double gradient = delta * hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
+            outputNeuron.updateWeights(learningRate, gradient);
+            agrad += gradient;
         }
+        avgGradient.add(agrad);
 
-        deltaHidden = newDeltaHidden; // Update delta for next iteration (previous layer)
+        // Update output neuron bias
+        outputNeuron.bias -= learningRate * delta;
+
+        // Step 2: Backpropagate the error through hidden layers
+        double[] deltaHidden = new double[hiddenLayers.get(hiddenLayers.size() - 1).neurons.length];
+
+        // Loop through hidden layers backwards
+        for (int l = hiddenLayers.size() - 1; l >= 0; l--) {
+            Layer layer = hiddenLayers.get(l);
+            double[] newDeltaHidden = new double[layer.neurons.length];
+
+            // Calculate delta for each neuron in this layer
+            for (int j = 0; j < layer.neurons.length; j++) {
+                Neuron neuron = layer.neurons[j];
+
+                double reluDeriv = (neuron.z > 0) ? 1.0 : 0.0; // ReLU derivative
+
+                // Delta for this neuron (local delta for hidden neurons)
+                double deltalocal = 0.0;
+
+                // If it's the last hidden layer (before output layer), we use the delta
+                // propagated from the output layer
+                if (l == hiddenLayers.size() - 1) {
+                    deltalocal = delta * reluDeriv; // Local delta from the output layer
+                } else {
+                    // For other hidden layers, use the error propagated from the next layer
+                    for (int k = 0; k < hiddenLayers.get(l + 1).neurons.length; k++) {
+                        // Backpropagate the delta from the next layer
+                        deltalocal += hiddenLayers.get(l + 1).neurons[k].weights[j] * deltaHidden[k];
+                    }
+                    deltalocal *= reluDeriv; // Apply the derivative of the activation function (ReLU)
+                }
+
+                // for data
+                double avgGrad = 0.0;
+                // Backpropagate delta through each neuron
+                for (int k = 0; k < neuron.weights.length; k++) {
+                    double inputToThisNeuron = neuron.input[k]; // saved during forward pass
+                    double gradient = deltalocal * inputToThisNeuron;
+                    neuron.weights[k] -= learningRate * gradient;
+                    // System.out.println("Gradient: " + gradient);
+                    avgGrad += gradient;
+
+                }
+                avgGradient.add(avgGrad);
+
+                // Update the neuron bias
+                neuron.bias -= learningRate * deltalocal;
+
+                newDeltaHidden[j] = deltalocal;
+            }
+
+            deltaHidden = newDeltaHidden; // Update delta for next iteration (previous layer)
+        }
     }
-    }
-
-
 
     public double lossFunction(double[] inp, double expected, double predictedOutput) {
 
@@ -300,21 +236,17 @@ public class MLP {
         double loss = 0.0;
 
         loss = expected * Math.log(Math.max(e, predictedOutput))
-            + (1 - expected) * Math.log(Math.max(e, 1 - predictedOutput));
-        
+                + (1 - expected) * Math.log(Math.max(e, 1 - predictedOutput));
 
         return -loss;
 
-
     }
 
-    public Vector<Double> getLosses()
-    {
+    public Vector<Double> getLosses() {
         return this.losses;
     }
 
-    public Vector<Double> getGradients()
-    {
+    public Vector<Double> getGradients() {
         return this.avgGradient;
     }
 }
