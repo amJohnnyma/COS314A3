@@ -167,10 +167,13 @@ public class MLP {
                 batchLoss /= batchInputs.size();
                 losses.add(batchLoss);
 
-                        // Backward pass on each sample
+                // Backward pass on each sample
+                /*
                 for (int b = 0; b < batchInputs.size(); b++) {
                     backward(activations.get(b), batchLabels.get(b), predictions.get(b));
                 }
+                    */
+                backwardBatch(batchInputs, batchLabels, predictions);
                 // end of batch implementation
 
                 /*
@@ -184,12 +187,13 @@ public class MLP {
                  * 
                  * double lf = lossFunction(out, expectedOutput, prediction);
                  * losses.add(lf);
-                 
-                // System.out.println("Expected: " + expectedOutput + " Predicted: " +
-                // prediction);
-                // System.out.println("Loss: " + lf);
-
-                backward(out, expectedOutput, prediction); */
+                 * 
+                 * // System.out.println("Expected: " + expectedOutput + " Predicted: " +
+                 * // prediction);
+                 * // System.out.println("Loss: " + lf);
+                 * 
+                 * backward(out, expectedOutput, prediction);
+                 */
 
             }
         }
@@ -276,6 +280,92 @@ public class MLP {
         }
     }
 
+    public void backwardBatch(List<double[]> batchInputs, List<Double> batchLabels, List<Double> batchPredictions) {
+        int batchSize = batchInputs.size();
+
+        // Initialize accumulators for output neuron
+        double[] outputWeightGrads = new double[outputNeuron.weights.length];
+        double outputBiasGrad = 0;
+
+        // Initialize accumulators for hidden layers
+        List<double[][]> hiddenWeightGrads = new ArrayList<>();
+        List<double[]> hiddenBiasGrads = new ArrayList<>();
+
+        for (Layer layer : hiddenLayers) {
+            hiddenWeightGrads.add(new double[layer.neurons.length][layer.neurons[0].weights.length]);
+            hiddenBiasGrads.add(new double[layer.neurons.length]);
+        }
+
+        // === Accumulate gradients over all samples ===
+        for (int b = 0; b < batchSize; b++) {
+            double[] input = batchInputs.get(b);
+            double expectedOutput = batchLabels.get(b);
+            double prediction = batchPredictions.get(b);
+
+            double delta = prediction - expectedOutput;
+
+            // Output neuron gradient
+            for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
+                double hiddenOut = hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
+                outputWeightGrads[i] += delta * hiddenOut;
+            }
+            outputBiasGrad += delta;
+
+            // Hidden layers backward
+            double[] deltaHidden = new double[hiddenLayers.get(hiddenLayers.size() - 1).neurons.length];
+
+            for (int l = hiddenLayers.size() - 1; l >= 0; l--) {
+                Layer layer = hiddenLayers.get(l);
+                double[] newDeltaHidden = new double[layer.neurons.length];
+
+                for (int j = 0; j < layer.neurons.length; j++) {
+                    Neuron neuron = layer.neurons[j];
+                    double reluDeriv = (neuron.z > 0) ? 1.0 : 0.0;
+                    double deltalocal = 0.0;
+
+                    if (l == hiddenLayers.size() - 1) {
+                        deltalocal = delta * reluDeriv;
+                    } else {
+                        for (int k = 0; k < hiddenLayers.get(l + 1).neurons.length; k++) {
+                            deltalocal += hiddenLayers.get(l + 1).neurons[k].weights[j] * deltaHidden[k];
+                        }
+                        deltalocal *= reluDeriv;
+                    }
+
+                    // Accumulate gradients
+                    for (int k = 0; k < neuron.weights.length; k++) {
+                        hiddenWeightGrads.get(l)[j][k] += deltalocal * neuron.input[k];
+                    }
+                    hiddenBiasGrads.get(l)[j] += deltalocal;
+
+                    newDeltaHidden[j] = deltalocal;
+                }
+
+                deltaHidden = newDeltaHidden;
+            }
+        }
+
+        // === Apply averaged gradients ===
+
+        // Output neuron update
+        for (int i = 0; i < outputNeuron.weights.length; i++) {
+            outputNeuron.weights[i] -= learningRate * (outputWeightGrads[i] / batchSize);
+        }
+        outputNeuron.bias -= learningRate * (outputBiasGrad / batchSize);
+
+        // Hidden layers update
+        for (int l = 0; l < hiddenLayers.size(); l++) {
+            Layer layer = hiddenLayers.get(l);
+            for (int j = 0; j < layer.neurons.length; j++) {
+                Neuron neuron = layer.neurons[j];
+                for (int k = 0; k < neuron.weights.length; k++) {
+                    neuron.weights[k] -= learningRate * (hiddenWeightGrads.get(l)[j][k] / batchSize);
+                }
+                neuron.bias -= learningRate * (hiddenBiasGrads.get(l)[j] / batchSize);
+            }
+        }
+    }
+
     public double lossFunction(double[] inp, double expected, double predictedOutput) {
 
         double e = 1e-7; // to gaurd against log(0)
@@ -297,26 +387,26 @@ public class MLP {
     }
 
     public static void shuffle(List<double[]> inputs, List<Double> labels) {
-    List<Integer> indices = new ArrayList<>();
-    for (int i = 0; i < inputs.size(); i++) {
-        indices.add(i);
+        List<Integer> indices = new ArrayList<>();
+        for (int i = 0; i < inputs.size(); i++) {
+            indices.add(i);
+        }
+
+        Collections.shuffle(indices); // Randomly shuffle indices
+
+        List<double[]> shuffledInputs = new ArrayList<>();
+        List<Double> shuffledLabels = new ArrayList<>();
+
+        for (int index : indices) {
+            shuffledInputs.add(inputs.get(index));
+            shuffledLabels.add(labels.get(index));
+        }
+
+        // Replace original lists
+        inputs.clear();
+        inputs.addAll(shuffledInputs);
+
+        labels.clear();
+        labels.addAll(shuffledLabels);
     }
-
-    Collections.shuffle(indices); // Randomly shuffle indices
-
-    List<double[]> shuffledInputs = new ArrayList<>();
-    List<Double> shuffledLabels = new ArrayList<>();
-
-    for (int index : indices) {
-        shuffledInputs.add(inputs.get(index));
-        shuffledLabels.add(labels.get(index));
-    }
-
-    // Replace original lists
-    inputs.clear();
-    inputs.addAll(shuffledInputs);
-
-    labels.clear();
-    labels.addAll(shuffledLabels);
-}
 }

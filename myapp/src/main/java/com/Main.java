@@ -10,7 +10,7 @@ public class Main
     {
         //HS: 8-32 HL: 1-2 LR: 0.0001 - 0.00001
         MLP mlp = new MLP("src/data/BTC_train.csv", 16, 1, 5, 0, 0.0005); 
-        mlp.trainNetwork(100);
+        mlp.trainNetwork(1000);
 
         //graphing
         Graph lg = new Graph(mlp.getLosses());
