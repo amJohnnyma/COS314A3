@@ -300,6 +300,7 @@ public void testNetwork() {
 }
 
 
+//Maybe refactor to use matrices
     public void backwardBatch(List<double[]> batchInputs, List<Double> batchLabels, List<Double> batchPredictions) {
         int batchSize = batchInputs.size();
 
@@ -331,11 +332,7 @@ public void testNetwork() {
             // Output neuron gradient
             for (int i = 0; i < hiddenLayers.get(hiddenLayers.size() - 1).neurons.length; i++) {
                 double hiddenOut = hiddenLayers.get(hiddenLayers.size() - 1).neurons[i].output;
-             //   System.out.println("Output bias grad: " + outputBiasGrad);
-              //  System.out.println("First output weight grad: " + outputWeightGrads[i]);
                 outputWeightGrads[i] += delta * hiddenOut;
-               // System.out.println("Update output weight grad: " + outputWeightGrads[i]);
-
             }
             outputBiasGrad += delta;
 
@@ -377,13 +374,12 @@ public void testNetwork() {
          deltaValues.add(deltaAvg);
        // outputBiasGrad /= batchSize;
 
-        // === Apply averaged gradients ===
 
         // Output neuron update
         for (int i = 0; i < outputNeuron.weights.length; i++) {
-            outputNeuron.weights[i] -= learningRate * (outputWeightGrads[i] / batchSize);
+            outputNeuron.weights[i] -= learningRate * (outputWeightGrads[i] );
         }
-        outputNeuron.bias -= learningRate * (outputBiasGrad / batchSize);
+        outputNeuron.bias -= learningRate * (outputBiasGrad );
 
         // Hidden layers update
         for (int l = 0; l < hiddenLayers.size(); l++) {
@@ -391,11 +387,11 @@ public void testNetwork() {
             for (int j = 0; j < layer.neurons.length; j++) {
                 Neuron neuron = layer.neurons[j];
                 for (int k = 0; k < neuron.weights.length; k++) {
-                    neuron.weights[k] -= learningRate * (hiddenWeightGrads.get(l)[j][k] / batchSize);
+                    neuron.weights[k] -= learningRate * (hiddenWeightGrads.get(l)[j][k] );
                     // neuron.updateWeights(learningRate, hiddenWeightGrads.get(l)[j][k] /
                     // batchSize);
                 }
-                neuron.bias -= learningRate * (hiddenBiasGrads.get(l)[j] / batchSize);
+                neuron.bias -= learningRate * (hiddenBiasGrads.get(l)[j] );
             }
         }
     }

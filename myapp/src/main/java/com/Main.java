@@ -20,22 +20,20 @@ public class Main
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-       //     for (int j = 1; j <= 10; j*=2) {
-          //       for (int hs = 8; hs <= 16; hs *= 2) {
-               //      for (int hl = 1; hl <= 8; hl+=2) {
-              //          for (int l = 0; l < lr.length; l++) {
+                 for(int k = 0; k < 10; k++)
+                 {
 
-                            final int it = 300; //300 - 1000 //500 feels good
-                            final int batch = 1; //to 64 //1 or it just guesses
-                            final int hiddenSize = 32; //to 32 //16 pretty good
-                            final int hiddenLayers = 3; //to 3
-                            final double learningRate = 0.01;// 0.001 to 0.01 //0.05 seems like the sweet spot
-                            final String chartName = "Test_100:It_" + it + "_Batch_" + batch + "_HS_" + hiddenSize + "_HL_" + hiddenLayers + "_LR_" + learningRate + "_Seed_" + seed;
+                            final int it = 1000; //300 - 1000 //500 feels good
+                            final int batch = 32; //to 64 //1 or it just guesses
+                            final int hiddenSize = 16; //to 32 //16 pretty good
+                            final int hiddenLayers = 2; //to 3
+                            final double learningRate = 0.05;// 0.001 to 0.01 //0.05 seems like the sweet spot
+                            final String chartName = /*"Test_100:It_" + it + "_Batch_" + batch + "_HS_" + hiddenSize + "_HL_" + hiddenLayers + "_LR_" + learningRate + */"_Seed_" + seed;
 
                             executor.submit(() -> {
                                 try {
-                                    MLP mlp = new MLP("src/data/Test.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
-                                    mlp.trainNetwork(it, batch, 30, 0.00001);
+                                    MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
+                                    mlp.trainNetwork(it, batch, 50, 0.0001);
 
                                     Graph g = new Graph(
                                         mlp.getLosses(),
@@ -54,10 +52,7 @@ public class Main
                                     e.printStackTrace();
                                 }
                             });
-                //          }
-                //      }
-                // }
-       //     }
+                 }
         
 
         // Shutdown the executor and wait for all tasks to finish
