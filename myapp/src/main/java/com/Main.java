@@ -14,7 +14,7 @@ public class Main
   double[] lr = {0.001, 0.0005, 0.0001, 0.005};
        // long seed = 0;
         Random r = new Random();
-        final long seed = r.nextLong();
+
 
         // Create a thread pool with N threads (adjust based on CPU cores)
         int numThreads = Runtime.getRuntime().availableProcessors();
@@ -22,7 +22,7 @@ public class Main
 
                  for(int k = 0; k < 10; k++)
                  {
-
+        final long seed = r.nextLong();
                             final int it = 1000; //300 - 1000 //500 feels good
                             final int batch = 32; //to 64 //1 or it just guesses
                             final int hiddenSize = 16; //to 32 //16 pretty good

@@ -27,6 +27,7 @@ public class MLP implements Serializable {
     private Neuron outputNeuron; // one per label
     private int numSamples = 0;
     private double learningRate = 0.0;
+    private long seed = 0;
 
     // Data collection
     public Vector<Double> losses = new Vector<Double>();
@@ -47,7 +48,7 @@ public class MLP implements Serializable {
 
     public MLP(String file, int hiddenSize, int hiddenL, int inputSize, long seed, double learningRate) // constructor
     {
-
+        this.seed = seed;
         // read data and assign inputs
 
         // Open,High,Low,Close,Adj Close,Output
@@ -281,6 +282,7 @@ public void testNetwork() {
     double accuracy = (double) correct / inputs.size();
     double avgLoss = totalLoss / inputs.size();
 
+    System.out.println("Seed: " + seed);
     System.out.println("Test Accuracy: " + accuracy);
     System.out.println("Average Loss: " + avgLoss);
 }
