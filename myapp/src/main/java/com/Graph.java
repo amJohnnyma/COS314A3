@@ -4,13 +4,14 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-import javax.swing.*;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
-import java.util.Vector;
+
+
+import java.util.*;
+import java.util.List;
 
 public class Graph {
 
@@ -65,21 +66,30 @@ public class Graph {
 
     private DefaultCategoryDataset createDataset() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+int smoothWindow = 10;
 
-        for (int i = 0; i < losses.size(); i++) {
-            dataset.addValue(losses.get(i), "Loss", Integer.toString(i + 1));
-            if (avgWeights != null && i < avgWeights.size())
-                dataset.addValue(avgWeights.get(i), "Avg Weights", Integer.toString(i + 1));
-            if (avgBiases != null && i < avgBiases.size())
-                dataset.addValue(avgBiases.get(i), "Avg Biases", Integer.toString(i + 1));
-            if (epochTimes != null && i < epochTimes.size())
-                dataset.addValue(epochTimes.get(i) / 1000.0, "Epoch Time (s)", Integer.toString(i + 1));
-            if (deltaValues != null && i < deltaValues.size())
-                dataset.addValue(deltaValues.get(i), "Delta", Integer.toString(i + 1));
-        }
+List<Double> smoothedLosses = movingAverage(losses, smoothWindow * 6);
+List<Double> smoothedWeights = avgWeights != null ? movingAverage(avgWeights, smoothWindow) : null;
+List<Double> smoothedBiases = avgBiases != null ? movingAverage(avgBiases, smoothWindow) : null;
+List<Double> smoothedTimes = epochTimes != null ? movingAverage(epochTimes.stream().map(t -> t / 1000.0).toList(), smoothWindow) : null;
+List<Double> smoothedDeltas = deltaValues != null ? movingAverage(deltaValues, smoothWindow * 6) : null;
+
+for (int i = 0; i < smoothedLosses.size(); i++) {
+    dataset.addValue(smoothedLosses.get(i), "Loss", Integer.toString(i + 1));
+    if (smoothedWeights != null && i < smoothedWeights.size())
+        dataset.addValue(smoothedWeights.get(i), "Avg Weights", Integer.toString(i + 1));
+    if (smoothedBiases != null && i < smoothedBiases.size())
+        dataset.addValue(smoothedBiases.get(i), "Avg Biases", Integer.toString(i + 1));
+    if (smoothedTimes != null && i < smoothedTimes.size())
+        dataset.addValue(smoothedTimes.get(i), "Epoch Time (s)", Integer.toString(i + 1));
+    if (smoothedDeltas != null && i < smoothedDeltas.size())
+        dataset.addValue(smoothedDeltas.get(i), "Delta", Integer.toString(i + 1));
+}
 
         return dataset;
     }
+
+
 
         private void saveChartAsPNG(JFreeChart chart, String fileName, int width, int height) {
         try {
@@ -99,4 +109,18 @@ public class Graph {
             System.err.println("Error saving chart: " + e.getMessage());
         }
     }
+
+        public List<Double> movingAverage(List<Double> values, int window) {
+            List<Double> smoothed = new ArrayList<>();
+            for (int i = 0; i < values.size(); i++) {
+                int start = Math.max(0, i - window + 1);
+                int end = i + 1;
+                double sum = 0.0;
+                for (int j = start; j < end; j++) {
+                    sum += values.get(j);
+                }
+                smoothed.add(sum / (end - start));
+            }
+            return smoothed;
+        }
 }
