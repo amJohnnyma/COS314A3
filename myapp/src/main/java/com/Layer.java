@@ -15,7 +15,7 @@ class Layer implements Serializable{
     public double[] forward(double[] input) {
         double[] outputs = new double[neurons.length];
         for (int i = 0; i < neurons.length; i++) {
-            outputs[i] = neurons[i].reluActivate(input);
+            outputs[i] = neurons[i].activate(input);
         }
         return outputs;
     }
