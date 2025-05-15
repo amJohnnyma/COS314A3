@@ -373,7 +373,7 @@ public void testNetwork() {
         }
         deltaAvg /= batchSize;
          deltaValues.add(deltaAvg);
-
+       // outputBiasGrad /= batchSize;
 
         // === Apply averaged gradients ===
 
