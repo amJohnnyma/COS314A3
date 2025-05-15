@@ -317,13 +317,15 @@ public void testNetwork() {
             hiddenBiasGrads.add(new double[layer.neurons.length]);
         }
 
-        // === Accumulate gradients over all samples ===
+        //  Accumulate gradients over all samples 
         for (int b = 0; b < batchSize; b++) {
             double[] input = batchInputs.get(b);
             double expectedOutput = batchLabels.get(b);
             double prediction = batchPredictions.get(b);
 
-            double delta = prediction - expectedOutput;
+            feedForward(input);
+
+            double delta = (prediction - expectedOutput);
             deltaAvg+=delta;
 
             // Output neuron gradient
@@ -350,15 +352,15 @@ public void testNetwork() {
                     double sigmoidDeriv = neuron.output * (1.0 - neuron.output);
 
                     double deltalocal = 0.0;
-
-                    if (l == hiddenLayers.size() - 1) {
-                        deltalocal = delta;
-                    } else {
-                        for (int k = 0; k < hiddenLayers.get(l + 1).neurons.length; k++) {
-                            deltalocal += hiddenLayers.get(l + 1).neurons[k].weights[j] * deltaHidden[k];
-                        }
-                        deltalocal *= sigmoidDeriv;
+                if (l == hiddenLayers.size() - 1) {
+                    // Last hidden layer connects to output
+                    deltalocal = delta * sigmoidDeriv;
+                } else {
+                    for (int k = 0; k < hiddenLayers.get(l + 1).neurons.length; k++) {
+                        deltalocal += deltaHidden[k] * hiddenLayers.get(l + 1).neurons[k].weights[j];
                     }
+                    deltalocal *= sigmoidDeriv;
+                }
                     // Accumulate gradients
                     for (int k = 0; k < neuron.weights.length; k++) {
                         hiddenWeightGrads.get(l)[j][k] += deltalocal * neuron.input[k];
