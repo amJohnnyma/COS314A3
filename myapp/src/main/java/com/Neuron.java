@@ -18,8 +18,9 @@ class Neuron implements Serializable{
         double limit = Math.sqrt(6.0 / (inputSize + 1));
         for (int i = 0; i < inputSize; i++) { // small random weight for each input
             weights[i] = r.nextDouble() * 2 * limit - limit; // xavier init
+         // weights[i] = r.nextGaussian() * Math.sqrt(2.0 / inputSize); //He init
         }
-        bias = 0;
+        bias = r.nextGaussian() * 0.01;
 
     }
 
@@ -63,11 +64,11 @@ class Neuron implements Serializable{
     }
 
     private double relu(double x) {
-        return Math.max(0, x);
+         return (z > 0) ? z : 0.01 * z;
     }
 
-    private double reluDerivative(double x) {
-        return x > 0 ? 1 : 0;
+    public double reluDerivative(double x) {
+        return (z > 0) ? 1.0 : 0.01;
     }
 
     public double gradientLoss(double deltaOutput, double input) {

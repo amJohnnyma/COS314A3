@@ -18,12 +18,15 @@ public class Graph {
     private Vector<Double> avgWeights;
     private Vector<Double> avgBiases;
     private Vector<Long> epochTimes;
+    private Vector<Double> deltaValues;
 
-    public Graph(Vector<Double> losses, Vector<Double> avgWeights, Vector<Double> avgBiases, Vector<Long> epochTimes) {
+
+    public Graph(Vector<Double> losses, Vector<Double> avgWeights, Vector<Double> avgBiases, Vector<Long> epochTimes, Vector<Double> deltaValues) {
         this.losses = losses;
         this.avgWeights = avgWeights;
         this.avgBiases = avgBiases;
         this.epochTimes = epochTimes;
+        this.deltaValues = deltaValues;
     }
 
     public void createAndShowChart(String name) {
@@ -71,6 +74,8 @@ public class Graph {
                 dataset.addValue(avgBiases.get(i), "Avg Biases", Integer.toString(i + 1));
             if (epochTimes != null && i < epochTimes.size())
                 dataset.addValue(epochTimes.get(i) / 1000.0, "Epoch Time (s)", Integer.toString(i + 1));
+            if (deltaValues != null && i < deltaValues.size())
+                dataset.addValue(deltaValues.get(i), "Delta", Integer.toString(i + 1));
         }
 
         return dataset;
