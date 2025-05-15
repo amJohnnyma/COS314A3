@@ -64,17 +64,17 @@ public class Main
                //      for (int hl = 1; hl <= 8; hl+=2) {
               //          for (int l = 0; l < lr.length; l++) {
 
-                            final int it = 500; //300 - 1000
-                            final int batch = 4; //to 64
-                            final int hiddenSize = 16; //to 32
-                            final int hiddenLayers = 1; //to 3
-                            final double learningRate = 0.01;// 0.001 to 0.01
-                            final String chartName = "Conservative:It_" + it + "_Batch_" + batch + "_HS_" + hiddenSize + "_HL_" + hiddenLayers + "_LR_" + learningRate;
+                            final int it = 300; //300 - 1000 //500 feels good
+                            final int batch = 1; //to 64 //1 or it just guesses
+                            final int hiddenSize = 32; //to 32 //16 pretty good
+                            final int hiddenLayers = 3; //to 3
+                            final double learningRate = 0.01;// 0.001 to 0.01 //0.05 seems like the sweet spot
+                            final String chartName = "Test_100:It_" + it + "_Batch_" + batch + "_HS_" + hiddenSize + "_HL_" + hiddenLayers + "_LR_" + learningRate + "_Seed_" + seed;
 
                             executor.submit(() -> {
                                 try {
-                                    MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
-                                    mlp.trainNetwork(it, batch, 30, 0.0001);
+                                    MLP mlp = new MLP("src/data/Test.csv", hiddenSize, hiddenLayers, 5, seed, learningRate);
+                                    mlp.trainNetwork(it, batch, 30, 0.00001);
 
                                     Graph g = new Graph(
                                         mlp.getLosses(),
