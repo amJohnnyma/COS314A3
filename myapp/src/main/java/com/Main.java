@@ -45,7 +45,7 @@ public class Main {
                     for (int k = 0; k < 10; k++) {
                         System.out.println("It: " + k + ", Ler: " + ler + ", HS: " + hs + ", BS: " + bs);
                         final long seed = r.nextLong();
-                        final int it = 100; // 300 - 1000 //500 feels good
+                        final int it = 3000; // 300 - 1000 //500 feels good
                         final int batch = 16; // to 64 //1 or it just guesses
                         final int hiddenSize = 16; // to 32 //16 pretty good
                         final int hiddenLayers = 2; // to 3
@@ -60,7 +60,7 @@ public class Main {
                                 mlp.trainNetwork(it, batch, 50, 0.01);
 
                                 double accuracy = mlp.testNetwork();
-                         //       if (accuracy >= 0.95) 
+                                if (accuracy >= 0.95) 
                                 {
                                     // Prepare a data holder class or map
                                     TrainingMetrics data = new TrainingMetrics(
