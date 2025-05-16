@@ -55,14 +55,19 @@ public static TrainingMetrics loadFromFile(String filePath) {
 
 
 public static Vector<Double> smooth(List<Double> values, int window) {
+    if (values == null) return null;
     Vector<Double> smoothed = new Vector<>();
-    double sum = 0;
-    int w = Math.min(window, values.size());
-    for (int i = 0; i < values.size(); i++) {
-        sum += values.get(i);
-        if (i >= w) sum -= values.get(i - w);
-        if (i >= w - 1) smoothed.add(sum / w);
-        else smoothed.add(sum / (i + 1));
+    double sum = 0.0;
+    int n = values.size();
+
+    for (int i = 0; i < n; i++) {
+        if (i < window) {
+            sum += values.get(i);
+            smoothed.add(sum / (i + 1));
+        } else {
+            sum += values.get(i) - values.get(i - window);
+            smoothed.add(sum / window);
+        }
     }
     return smoothed;
 }
@@ -72,4 +77,12 @@ public static Vector<Double> smoothEpochTimes(Vector<Long> times, int window) {
     return smooth(times.stream().map(t -> t / 1000.0).toList(), window);
 }
 
+public static List<Double> downsample(List<Double> data, int factor) {
+    if (data == null || factor <= 1) return data;
+    List<Double> sampled = new ArrayList<>();
+    for (int i = 0; i < data.size(); i += factor) {
+        sampled.add(data.get(i));
+    }
+    return sampled;
+}
 }

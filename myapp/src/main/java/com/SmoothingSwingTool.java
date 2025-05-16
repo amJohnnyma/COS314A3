@@ -2,9 +2,11 @@ package com;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.ArrayList;
+
 import java.awt.event.*;
 import java.io.File;
-import java.awt.Dimension;
 
 
 public class SmoothingSwingTool extends JFrame {
@@ -72,18 +74,33 @@ public class SmoothingSwingTool extends JFrame {
             statusLabel.setText("No metrics loaded!");
             return;
         }
-        int window = smoothingSlider.getValue();
-        statusLabel.setText("Generating chart with smoothing window = " + window + "...");
+        int downsampleFactor = 50;  // Or get this from a slider/input to let user control it
+        int smoothingWindow = smoothingSlider.getValue();  // Your existing smoothing window
+        statusLabel.setText("Generating chart with smoothing window = " + smoothingWindow + "...");
 
-        Graph g = new Graph(
-            TrainingMetrics.smooth(metrics.losses, window),
-            TrainingMetrics.smooth(metrics.avgWeights, window),
-            TrainingMetrics.smooth(metrics.avgBiases, window),
-            TrainingMetrics.smoothEpochTimes(metrics.epochTimes, window),
-            TrainingMetrics.smooth(metrics.deltaValues, window)
-        );
 
-        String fileName = "Smoothed_" + window + ".png";
+        // Downsample first
+        List<Double> dsLosses = TrainingMetrics.downsample(metrics.losses, downsampleFactor);
+        List<Double> dsWeights = TrainingMetrics.downsample(metrics.avgWeights, downsampleFactor);
+        List<Double> dsBiases = TrainingMetrics.downsample(metrics.avgBiases, downsampleFactor);
+        List<Double> dsDeltaValues = TrainingMetrics.downsample(metrics.deltaValues, downsampleFactor);
+
+        // For epoch times (Vector<Long>), convert to List<Double> first, then downsample:
+        List<Double> epochTimesSeconds = metrics.epochTimes.stream().map(t -> t / 1000.0).toList();
+        List<Double> dsEpochTimes = TrainingMetrics.downsample(epochTimesSeconds, downsampleFactor);
+
+        // Now smooth the downsampled data:
+        List<Double> smoothLosses = TrainingMetrics.smooth(dsLosses, smoothingWindow);
+        List<Double> smoothWeights = TrainingMetrics.smooth(dsWeights, smoothingWindow);
+        List<Double> smoothBiases = TrainingMetrics.smooth(dsBiases, smoothingWindow);
+        List<Double> smoothEpochTimes = TrainingMetrics.smooth(dsEpochTimes, smoothingWindow);
+        List<Double> smoothDeltas = TrainingMetrics.smooth(dsDeltaValues, smoothingWindow);
+
+
+        Graph g = new Graph(smoothLosses, smoothWeights, smoothBiases, smoothEpochTimes, smoothDeltas);
+
+        String originalName = selectedFile.getName();  // just the file name, no path
+        String fileName = "SMOOTH: " + smoothingWindow + " - " + originalName + ".png";
         g.createChart(fileName);
 
         statusLabel.setText("Chart saved as: " + fileName);
