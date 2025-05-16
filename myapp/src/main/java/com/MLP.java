@@ -447,6 +447,37 @@ public double testNetwork() {
     }
 
     // Method to save the model to a file
+    /* From chat:
+     ✅ What is safe?
+
+    Adding new methods (like utility functions or training logic).
+
+    Adding transient fields (they are ignored during serialization).
+
+    Adding new non-transient fields with default values (but see warnings below).
+
+⚠️ What can break deserialization?
+
+If you do any of the following, deserialization of previously saved objects can fail with InvalidClassException:
+
+    Change the class structure significantly, like:
+
+        Renaming or removing fields.
+
+        Changing field types.
+
+    Change the class name or package name.
+
+    Don’t manage serialVersionUID correctly (see below).
+
+
+    Change Type	Safe?	Notes
+Add method	✅	Fully safe.
+Add field	⚠️	Safe if you use default values and set serialVersionUID.
+Remove/rename field	❌	Breaks compatibility.
+Change class/package name	❌	Breaks compatibility.
+Add serialVersionUID	✅	Strongly recommended.
+     */
     public void saveModel(String filename) {
         try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(filename))) {
             out.writeObject(this); // Write the entire MLP object to the file
