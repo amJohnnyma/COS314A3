@@ -10,8 +10,10 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 
+import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.util.*;
-import java.util.List;
 
 public class Graph {
 
@@ -22,20 +24,25 @@ public class Graph {
     private Vector<Double> deltaValues;
 
 
-    public Graph(Vector<Double> losses, Vector<Double> avgWeights, Vector<Double> avgBiases, Vector<Long> epochTimes, Vector<Double> deltaValues) {
-        this.losses = losses;
-        this.avgWeights = avgWeights;
-        this.avgBiases = avgBiases;
-        this.epochTimes = epochTimes;
-        this.deltaValues = deltaValues;
-    }
+public Graph(List<Double> losses, List<Double> avgWeights, List<Double> avgBiases,
+             List<Double> epochTimesInSec, List<Double> deltaValues) {
 
-    public void createAndShowChart(String name) {
+    this.losses = new Vector<>(losses);
+    this.avgWeights = new Vector<>(avgWeights);
+    this.avgBiases = new Vector<>(avgBiases);
+    this.epochTimes = new Vector<>();
+    for (Double t : epochTimesInSec) {
+        this.epochTimes.add((long)(t * 1000)); // Convert back to ms for compatibility
+    }
+    this.deltaValues = new Vector<>(deltaValues);
+}
+
+    public void createChart(String name) {
         // Create a dataset using the losses
         DefaultCategoryDataset dataset = createDataset();
 
         JFreeChart chart = ChartFactory.createLineChart(
-                "Training Metrics Over Time",
+                name,
                 "Epoch",
                 "Value",
                 dataset,
@@ -64,30 +71,23 @@ public class Graph {
         */
     }
 
-    private DefaultCategoryDataset createDataset() {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-int smoothWindow = 15;
+private DefaultCategoryDataset createDataset() {
+    DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-List<Double> smoothedLosses = movingAverage(losses, smoothWindow * 6);
-List<Double> smoothedWeights = avgWeights != null ? movingAverage(avgWeights, smoothWindow) : null;
-List<Double> smoothedBiases = avgBiases != null ? movingAverage(avgBiases, smoothWindow) : null;
-List<Double> smoothedTimes = epochTimes != null ? movingAverage(epochTimes.stream().map(t -> t / 1000.0).toList(), smoothWindow) : null;
-List<Double> smoothedDeltas = deltaValues != null ? movingAverage(deltaValues, smoothWindow * 6) : null;
-
-for (int i = 0; i < smoothedLosses.size(); i++) {
-    dataset.addValue(smoothedLosses.get(i), "Loss", Integer.toString(i + 1));
-    if (smoothedWeights != null && i < smoothedWeights.size())
-        dataset.addValue(smoothedWeights.get(i), "Avg Weights", Integer.toString(i + 1));
-    if (smoothedBiases != null && i < smoothedBiases.size())
-        dataset.addValue(smoothedBiases.get(i), "Avg Biases", Integer.toString(i + 1));
-    if (smoothedTimes != null && i < smoothedTimes.size())
-        dataset.addValue(smoothedTimes.get(i), "Epoch Time (s)", Integer.toString(i + 1));
-    if (smoothedDeltas != null && i < smoothedDeltas.size())
-        dataset.addValue(smoothedDeltas.get(i), "Delta", Integer.toString(i + 1));
-}
-
-        return dataset;
+    for (int i = 0; i < losses.size(); i++) {
+        dataset.addValue(losses.get(i), "Loss", Integer.toString(i + 1));
+        if (avgWeights != null && i < avgWeights.size())
+            dataset.addValue(avgWeights.get(i), "Avg Weights", Integer.toString(i + 1));
+        if (avgBiases != null && i < avgBiases.size())
+            dataset.addValue(avgBiases.get(i), "Avg Biases", Integer.toString(i + 1));
+        if (epochTimes != null && i < epochTimes.size())
+            dataset.addValue(epochTimes.get(i) / 1000.0, "Epoch Time (s)", Integer.toString(i + 1));
+        if (deltaValues != null && i < deltaValues.size())
+            dataset.addValue(deltaValues.get(i), "Delta", Integer.toString(i + 1));
     }
+
+    return dataset;
+}
 
 
 
