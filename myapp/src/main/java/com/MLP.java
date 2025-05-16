@@ -282,8 +282,12 @@ public double testNetwork() {
     double accuracy = (double) correct / inputs.size();
     double avgLoss = totalLoss / inputs.size();
 
+    if(accuracy >= 0.95)
+    {
     System.out.println("Seed: " + seed);
     System.out.println("Average Loss: " + avgLoss);
+    }
+
     return accuracy;
 }
 
