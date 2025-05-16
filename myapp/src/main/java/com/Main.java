@@ -39,18 +39,14 @@ public class Main {
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads - 2);
 
-        for (int ler = 0; ler < 3; ler++) {
-            for (int hs = 1; hs <= 2; hs++) {
-                for (int bs = 1; bs <= 2; bs++) {
-                    for (int k = 0; k < 10; k++) {
-                        System.out.println("It: " + k + ", Ler: " + ler + ", HS: " + hs + ", BS: " + bs);
+                    for (int k = 0; k < 20; k++) {
                         final long seed = r.nextLong();
-                        final int it = 3000; // 300 - 1000 //500 feels good
-                        final int batch = 16; // to 64 //1 or it just guesses
-                        final int hiddenSize = 16; // to 32 //16 pretty good
-                        final int hiddenLayers = 2; // to 3
-                        final double learningRate = 0.1;// 0.001 to 0.01 //0.05 seems like the sweet spot
-                        final String chartName = "SMALL_Batch_" + batch + "_HS_" + hiddenSize
+                        final int it = 5000; 
+                        final int batch = 16; 
+                        final int hiddenSize = 32; 
+                        final int hiddenLayers = 2; 
+                        final double learningRate = 0.01;
+                        final String chartName = "_Batch_" + batch + "_HS_" + hiddenSize
                                 + "_LR_" + learningRate + "_Seed_" + seed;
 
                         executor.submit(() -> {
@@ -84,10 +80,7 @@ public class Main {
                             }
                         });
                     }
-                }
-            }
 
-        }
 
         // Shutdown the executor and wait for all tasks to finish
         executor.shutdown();
