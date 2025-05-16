@@ -97,7 +97,7 @@ private DefaultCategoryDataset createDataset() {
             BufferedImage bufferedImage = chart.createBufferedImage(width, height);
 
             // Save the BufferedImage as a PNG file
-            File directory = new File("WithStops");  // Create a directory called "charts" if it doesn't exist
+            File directory = new File("SmoothedGraphs");  // Create a directory called "charts" if it doesn't exist
             if (!directory.exists()) {
                 directory.mkdir();  // Create the directory if it doesn't already exist
             }
