@@ -1,0 +1,3 @@
+# Ignore all JSON and MLP files anywhere in the project
+*.json
+*.mlp
