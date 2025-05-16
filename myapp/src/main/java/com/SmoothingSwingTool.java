@@ -14,7 +14,7 @@ public class SmoothingSwingTool extends JFrame {
     private TrainingMetrics metrics;
     private JLabel statusLabel;
     private JSlider smoothingSlider;
-    private JButton loadButton, generateButton;
+    private JButton loadButton, generateButton, processAllButton;
     private File selectedFile;
 
     public SmoothingSwingTool() {
@@ -36,10 +36,11 @@ public class SmoothingSwingTool extends JFrame {
         smoothingSlider.setPaintLabels(true);
         topPanel.add(new JLabel("Smoothing Window:"));
         topPanel.add(smoothingSlider);
-
-        generateButton = new JButton("Generate Chart");
+        processAllButton = new JButton("Process all Files");        
+        generateButton = new JButton("Generate Selected File");
         generateButton.setEnabled(false);
         topPanel.add(generateButton);
+        topPanel.add(processAllButton);
 
         add(topPanel, BorderLayout.CENTER);
 
@@ -49,10 +50,36 @@ public class SmoothingSwingTool extends JFrame {
         // Button listeners
         loadButton.addActionListener(e -> loadMetrics());
         generateButton.addActionListener(e -> generateChart());
+        processAllButton.addActionListener(e -> batchLoadMetrics());
 
         setVisible(true);
     }
 
+
+    private void batchLoadMetrics() {
+    File dir = new File(System.getProperty("user.dir") + "/myapp/WithStops/");
+    File[] files = dir.listFiles((d, name) -> name.endsWith(".json"));
+
+    if (files != null && files.length > 0) {
+        int loadedCount = 0;
+
+        for (File file : files) {
+            TrainingMetrics loadedMetrics = TrainingMetrics.loadFromFile(file.getAbsolutePath());
+            if (loadedMetrics != null) {
+                metrics = loadedMetrics;  // optional: store last loaded metrics if needed
+                selectedFile = file;
+                generateChart();  // use the selectedFile and metrics
+                loadedCount++;
+            } else {
+                System.err.println("Failed to load: " + file.getName());
+            }
+        }
+
+        statusLabel.setText("Loaded and processed " + loadedCount + " files.");
+    } else {
+        statusLabel.setText("No .json files found in directory.");
+    }
+}
     private void loadMetrics() {
         JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir") + "/myapp/WithStops/");
         int result = fileChooser.showOpenDialog(this);
