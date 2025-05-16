@@ -7,7 +7,7 @@ import java.util.concurrent.Executors;
 public class Main {
     public static void main(String[] args) {
 
-        double[] lr = { 0.5, 0.1, 0.05, 0.01, 0.005, 0.001 };
+        double[] lr = { 0.1, 0.05, 0.01, 0.005 };
         // long seed = 0;
         Random r = new Random();
 
@@ -15,9 +15,9 @@ public class Main {
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads);
 
-        for (int ler = 0; ler < 6; ler++) {
+        for (int ler = 0; ler < 4; ler++) {
             for (int hs = 1; hs <= 2; hs++) {
-                for (int bs = 1; bs < 3; bs++) {
+                for (int bs = 1; bs <= 2; bs++) {
                     for (int k = 0; k < 10; k++) {
                         final long seed = r.nextLong();
                         final int it = 5000; // 300 - 1000 //500 feels good
