@@ -66,7 +66,7 @@ public class Graph {
 
     private DefaultCategoryDataset createDataset() {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-int smoothWindow = 10;
+int smoothWindow = 15;
 
 List<Double> smoothedLosses = movingAverage(losses, smoothWindow * 6);
 List<Double> smoothedWeights = avgWeights != null ? movingAverage(avgWeights, smoothWindow) : null;

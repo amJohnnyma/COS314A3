@@ -259,7 +259,7 @@ public class MLP implements Serializable {
 
 
     }
-public void testNetwork() {
+public double testNetwork() {
     int correct = 0;
     double totalLoss = 0.0;
 
@@ -283,8 +283,8 @@ public void testNetwork() {
     double avgLoss = totalLoss / inputs.size();
 
     System.out.println("Seed: " + seed);
-    System.out.println("Test Accuracy: " + accuracy);
     System.out.println("Average Loss: " + avgLoss);
+    return accuracy;
 }
 
     //////////// Helper functions// Could probably be its own class
