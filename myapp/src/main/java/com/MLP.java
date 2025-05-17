@@ -285,7 +285,79 @@ public double testNetwork() {
 
     return accuracy;
 }
-
+public double networkRWTest () {
+    List<double[]> testInputs = new ArrayList<>();
+    List<Double> testLabels = new ArrayList<>();
+    
+    // Load test data from BTC_test.csv
+    String csvFile = "src/data/BTC_test.csv";
+    String line;
+    String csvSplitBy = ",";
+    
+    try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
+        // Skip header if present
+        boolean headerSkipped = false;
+        
+        while ((line = br.readLine()) != null) {
+            if (!containsNumbers(line)) {
+                if (!headerSkipped) {
+                    headerSkipped = true;
+                    continue;
+                }
+            }
+            
+            String[] values = line.split(csvSplitBy);
+            if (values.length >= 6) {  // Ensure we have all needed columns
+                double[] row = new double[6];
+                for (int k = 0; k < values.length && k < 6; k++) {
+                    row[k] = Double.parseDouble(values[k]);
+                }
+                
+                // Apply the same normalization as was applied to training data
+                // Note: Ideally we should reuse the min/max values from training
+                double[] input = Arrays.copyOfRange(row, 0, 5);
+                double label = row[5];
+                testInputs.add(input);
+                testLabels.add(label);
+            }
+        }
+    } catch (IOException e) {
+        System.err.println("Error reading test file: " + e.getMessage());
+        e.printStackTrace();
+        return 0.0;  // Return 0 accuracy on error
+    }
+    
+    System.out.println("Loaded " + testInputs.size() + " test samples");
+    
+    // Now test on the loaded test data
+    int correct = 0;
+    double totalLoss = 0.0;
+    
+    for (int i = 0; i < testInputs.size(); i++) {
+        double[] input = testInputs.get(i);
+        double expected = testLabels.get(i);
+        double prediction = feedForward(input);
+        
+        // Optional: Round prediction to 0 or 1
+        int predRounded = prediction >= 0.5 ? 1 : 0;
+        int labelRounded = expected >= 0.5 ? 1 : 0;
+        
+        if (predRounded == labelRounded) {
+            correct++;
+        }
+        
+        totalLoss += lossFunction(input, expected, prediction);
+    }
+    
+    double accuracy = (double) correct / testInputs.size();
+    double avgLoss = totalLoss / testInputs.size();
+    
+    System.out.println("Test Results:");
+    System.out.println("Accuracy: " + (accuracy * 100) + "%");
+    System.out.println("Average Loss: " + avgLoss);
+    
+    return accuracy;
+}
     //////////// Helper functions// Could probably be its own class
     public static boolean containsNumbers(String input) {
         Pattern pattern = Pattern.compile("\\d");

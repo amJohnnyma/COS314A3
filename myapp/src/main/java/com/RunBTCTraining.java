@@ -21,7 +21,7 @@ public class RunBTCTraining {
         final long seed = 12345; // Fixed seed for reproducibility
         
         // Number of parallel training sessions
-        final int numRuns = 1; // Start with 1 for simplicity
+        final int numRuns = 10; 
         
         System.out.println("Configuration:");
         System.out.println("- Iterations: " + iterations);
