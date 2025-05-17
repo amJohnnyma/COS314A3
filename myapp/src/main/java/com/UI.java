@@ -1,10 +1,9 @@
 package com;
 
 import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
 import java.awt.*;
 import java.util.List;
+import java.util.ArrayList;
 
 import java.io.File;
 
@@ -22,7 +21,6 @@ public class UI extends JFrame {
     // Function modes
     private static final String MODE_SMOOTHING = "Smoothing Graphs";
     private static final String MODE_MLP = "RunMLP";
-    private static final String MODE_MLP_TEST = "TestMLP";
     private static final String MODE_DT = "RunDT";
 
     private String[] functions = { MODE_SMOOTHING, MODE_MLP };
@@ -58,64 +56,46 @@ public class UI extends JFrame {
     }
 
     private JPanel createSmoothingPanel() {
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BorderLayout(10, 10));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
-        topPanel.add(loadButton = new JButton("Load Metrics JSON"));
-        topPanel.add(Box.createHorizontalStrut(15));
-        topPanel.add(new JLabel("Smoothing Window:"));
-        topPanel.add(Box.createHorizontalStrut(10));
+        loadButton = new JButton("Load Metrics JSON");
+        generateButton = new JButton("Generate Selected File");
+        generateButton.setEnabled(false);
+        processAllButton = new JButton("Process all Files");
+
         smoothingSlider = new JSlider(1, 200, 15);
         smoothingSlider.setMajorTickSpacing(20);
         smoothingSlider.setPaintTicks(true);
         smoothingSlider.setPaintLabels(true);
-        topPanel.add(smoothingSlider);
 
-        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
-        generateButton = new JButton("Generate Selected File");
-        generateButton.setEnabled(false);
-        processAllButton = new JButton("Process All Files");
-        bottomPanel.add(generateButton);
-        bottomPanel.add(processAllButton);
-
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        mainPanel.add(topPanel, BorderLayout.NORTH);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        panel.add(loadButton);
+        panel.add(new JLabel("Smoothing Window:"));
+        panel.add(smoothingSlider);
+        panel.add(generateButton);
+        panel.add(processAllButton);
 
         // Listeners
         loadButton.addActionListener(e -> loadMetrics());
         generateButton.addActionListener(e -> generateChart());
         processAllButton.addActionListener(e -> batchLoadMetrics());
 
-        return mainPanel;
+        return panel;
     }
 
     private JPanel createMLPPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2, 10, 10));
 
-        JTextField iterationsField = new JTextField("1000");
+        JTextField iterationsField = new JTextField("10");
         JTextField learningRateField = new JTextField("0.01");
-        JTextField seedField = new JTextField("0");
-        JTextField batchSizeField = new JTextField("16");
-        JTextField hiddenSizeField = new JTextField("32");
+        JTextField seedField = new JTextField("123");
+        JTextField batchSizeField = new JTextField("32");
+        JTextField hiddenSizeField = new JTextField("64");
         JTextField hiddenLayersField = new JTextField("2");
         JTextField targetAccField = new JTextField("0.95");
 
         JButton runMLPButton = new JButton("Run MLP");
-        JButton testMLPButton = new JButton("Test MLP");
-        JButton loadMLPButton = new JButton("Load MLP");
-
-        loadMLPButton.addActionListener(e -> {
-
-            loadMLP();
-            if (selectedFile.exists()) {
-                testMLPButton.setEnabled(true);
-
-            }
-        });
 
         runMLPButton.addActionListener(e -> {
             try {
@@ -128,26 +108,14 @@ public class UI extends JFrame {
                 double targetAccuracy = Double.parseDouble(targetAccField.getText());
 
                 AlgoFunctions af = new AlgoFunctions();
+                af.runMLP(iterations, 1, learningRate, seed, batchSize, hiddenSize, hiddenLayers, targetAccuracy);
+
                 statusLabel.setText("MLP training started...");
-
-                if (af.runMLP(iterations, 10, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
-                        targetAccuracy)) {
-                    statusLabel.setText("MLP training finished");
-
-                } else {
-                    statusLabel.setText("MLP training started...");
-
-                }
 
             } catch (Exception ex) {
                 statusLabel.setText("Invalid MLP parameter input.");
                 ex.printStackTrace();
             }
-        });
-        testMLPButton.setEnabled(false);
-        testMLPButton.addActionListener(e -> {
-            AlgoFunctions af = new AlgoFunctions();
-            af.testMLP(selectedFile.getName());
         });
 
         panel.add(new JLabel("Iterations:"));
@@ -165,14 +133,20 @@ public class UI extends JFrame {
         panel.add(new JLabel("Target Accuracy:"));
         panel.add(targetAccField);
         panel.add(runMLPButton);
-        panel.add(testMLPButton);
-        panel.add(loadMLPButton);
 
         return panel;
     }
 
     private void batchLoadMetrics() {
-        File dir = new File(System.getProperty("user.dir") + "/WithStops/");
+        // Get the application's current directory
+        File currentDir = new File(System.getProperty("user.dir"));
+        File dir = new File(currentDir, "WithStops");
+        
+        if (!dir.exists()) {
+            statusLabel.setText("Directory not found: " + dir.getAbsolutePath());
+            return;
+        }
+        
         File[] files = dir.listFiles((d, name) -> name.endsWith(".json"));
 
         if (files != null && files.length > 0) {
@@ -192,40 +166,36 @@ public class UI extends JFrame {
 
             statusLabel.setText("Loaded and processed " + loadedCount + " files.");
         } else {
-            statusLabel.setText("No .json files found in directory.");
+            statusLabel.setText("No .json files found in directory: " + dir.getAbsolutePath());
         }
     }
 
     private void loadMetrics() {
-        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir") + "/WithStops/");
+        // Start in the current directory or the WithStops directory if it exists
+        File currentDir = new File(System.getProperty("user.dir"));
+        File withStopsDir = new File(currentDir, "WithStops");
+        File startDir = withStopsDir.exists() ? withStopsDir : currentDir;
+        
+        JFileChooser fileChooser = new JFileChooser(startDir);
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
-            metrics = TrainingMetrics.loadFromFile(selectedFile.getAbsolutePath());
-            if (metrics != null) {
-                statusLabel.setText("Loaded: " + selectedFile.getName());
-                generateButton.setEnabled(true);
-            } else {
-                statusLabel.setText("Failed to load metrics file.");
+            statusLabel.setText("Loading: " + selectedFile.getName() + "...");
+            
+            try {
+                metrics = TrainingMetrics.loadFromFile(selectedFile.getAbsolutePath());
+                if (metrics != null) {
+                    statusLabel.setText("Loaded: " + selectedFile.getName());
+                    generateButton.setEnabled(true);
+                } else {
+                    statusLabel.setText("Failed to load metrics file.");
+                    generateButton.setEnabled(false);
+                }
+            } catch (Exception e) {
+                statusLabel.setText("Error loading file: " + e.getMessage());
+                e.printStackTrace();
                 generateButton.setEnabled(false);
             }
-        }
-    }
-
-    private void loadMLP() {
-        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
-
-        // Set to only allow file selection (not directories)
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-        // Filter for .mlp files
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("MLP Model Files", "mlp");
-        fileChooser.setFileFilter(filter);
-
-        // Show dialog
-        int result = fileChooser.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            selectedFile = fileChooser.getSelectedFile();
         }
     }
 
@@ -234,39 +204,69 @@ public class UI extends JFrame {
             statusLabel.setText("No metrics loaded!");
             return;
         }
-        int downsampleFactor = 50; // Or get this from a slider/input to let user control it
-        int smoothingWindow = smoothingSlider.getValue(); // Your existing smoothing window
-        statusLabel.setText("Generating chart with smoothing window = " + smoothingWindow + "...");
-
-        // Downsample first
-        List<Double> dsLosses = TrainingMetrics.downsample(metrics.losses, downsampleFactor);
-        List<Double> dsWeights = TrainingMetrics.downsample(metrics.avgWeights, downsampleFactor);
-        List<Double> dsBiases = TrainingMetrics.downsample(metrics.avgBiases, downsampleFactor);
-        List<Double> dsDeltaValues = TrainingMetrics.downsample(metrics.deltaValues, downsampleFactor);
-
-        // For epoch times (Vector<Long>), convert to List<Double> first, then
-        // downsample:
-        List<Double> epochTimesSeconds = metrics.epochTimes.stream().map(t -> t / 1000.0).toList();
-        List<Double> dsEpochTimes = TrainingMetrics.downsample(epochTimesSeconds, downsampleFactor);
-
-        // Now smooth the downsampled data:
-        List<Double> smoothLosses = TrainingMetrics.smooth(dsLosses, smoothingWindow);
-        List<Double> smoothWeights = TrainingMetrics.smooth(dsWeights, smoothingWindow);
-        List<Double> smoothBiases = TrainingMetrics.smooth(dsBiases, smoothingWindow);
-        List<Double> smoothEpochTimes = TrainingMetrics.smooth(dsEpochTimes, smoothingWindow);
-        List<Double> smoothDeltas = TrainingMetrics.smooth(dsDeltaValues, smoothingWindow);
-
-        Graph g = new Graph(smoothLosses, smoothWeights, smoothBiases, smoothEpochTimes, smoothDeltas);
-
-        String originalName = selectedFile.getName(); // just the file name, no path
-        String fileName = "SMOOTH: " + smoothingWindow + " - " + originalName + ".png";
-        g.createChart(fileName);
-
-        statusLabel.setText("Chart saved as: " + fileName);
+        
+        try {
+            int downsampleFactor = 50; // Or get this from a slider/input to let user control it
+            int smoothingWindow = smoothingSlider.getValue(); // Your existing smoothing window
+            statusLabel.setText("Generating chart with smoothing window = " + smoothingWindow + "...");
+    
+            // Check if metrics contain data
+            if (metrics.losses == null || metrics.losses.isEmpty()) {
+                statusLabel.setText("No loss data found in metrics!");
+                return;
+            }
+    
+            // Downsample first
+            List<Double> dsLosses = TrainingMetrics.downsample(metrics.losses, downsampleFactor);
+            
+            List<Double> dsWeights = (metrics.avgWeights != null && !metrics.avgWeights.isEmpty()) ?
+                    TrainingMetrics.downsample(metrics.avgWeights, downsampleFactor) : new ArrayList<>();
+                    
+            List<Double> dsBiases = (metrics.avgBiases != null && !metrics.avgBiases.isEmpty()) ?
+                    TrainingMetrics.downsample(metrics.avgBiases, downsampleFactor) : new ArrayList<>();
+                    
+            List<Double> dsDeltaValues = (metrics.deltaValues != null && !metrics.deltaValues.isEmpty()) ?
+                    TrainingMetrics.downsample(metrics.deltaValues, downsampleFactor) : new ArrayList<>();
+    
+            // For epoch times (Vector<Long>), convert to List<Double> first, then downsample:
+            List<Double> epochTimesSeconds = new ArrayList<>();
+            if (metrics.epochTimes != null && !metrics.epochTimes.isEmpty()) {
+                for (Long time : metrics.epochTimes) {
+                    epochTimesSeconds.add(time / 1000.0);
+                }
+            }
+            List<Double> dsEpochTimes = (!epochTimesSeconds.isEmpty()) ?
+                    TrainingMetrics.downsample(epochTimesSeconds, downsampleFactor) : new ArrayList<>();
+    
+            // Now smooth the downsampled data:
+            List<Double> smoothLosses = TrainingMetrics.smooth(dsLosses, smoothingWindow);
+            
+            List<Double> smoothWeights = (!dsWeights.isEmpty()) ?
+                    TrainingMetrics.smooth(dsWeights, smoothingWindow) : new ArrayList<>();
+                    
+            List<Double> smoothBiases = (!dsBiases.isEmpty()) ?
+                    TrainingMetrics.smooth(dsBiases, smoothingWindow) : new ArrayList<>();
+                    
+            List<Double> smoothEpochTimes = (!dsEpochTimes.isEmpty()) ?
+                    TrainingMetrics.smooth(dsEpochTimes, smoothingWindow) : new ArrayList<>();
+                    
+            List<Double> smoothDeltas = (!dsDeltaValues.isEmpty()) ?
+                    TrainingMetrics.smooth(dsDeltaValues, smoothingWindow) : new ArrayList<>();
+    
+            Graph g = new Graph(smoothLosses, smoothWeights, smoothBiases, smoothEpochTimes, smoothDeltas);
+    
+            String originalName = selectedFile.getName(); // just the file name, no path
+            String fileName = "SMOOTH_" + smoothingWindow + "_" + originalName + ".png";
+            g.createChart(fileName);
+    
+            statusLabel.setText("Chart saved as: " + fileName);
+        } catch (Exception e) {
+            statusLabel.setText("Error generating chart: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(UI::new);
     }
-
 }

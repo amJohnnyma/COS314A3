@@ -91,7 +91,7 @@ public class AlgoFunctions {
             // System.out.println(filename);
             MLP mlp = MLP.loadModel(System.getProperty("user.dir") + "/" + filename);
             // System.out.println("Load model");
-            double accuracy = mlp.testNetwork();
+            double accuracy = mlp.networkRWTest();
             System.out.println("Accuracy " + accuracy);
         } catch (Exception e) {
             e.printStackTrace();
