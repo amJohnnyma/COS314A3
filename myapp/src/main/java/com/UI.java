@@ -97,12 +97,14 @@ public class UI extends JFrame {
         panel.setLayout(new GridLayout(0, 2, 10, 10));
 
         JTextField iterationsField = new JTextField("1000");
+        JTextField runsField = new JTextField("10");
         JTextField learningRateField = new JTextField("0.01");
         JTextField seedField = new JTextField("0");
         JTextField batchSizeField = new JTextField("16");
         JTextField hiddenSizeField = new JTextField("32");
         JTextField hiddenLayersField = new JTextField("2");
         JTextField targetAccField = new JTextField("0.95");
+
 
         JButton runMLPButton = new JButton("Run MLP");
         JButton testMLPButton = new JButton("Test MLP");
@@ -126,11 +128,12 @@ public class UI extends JFrame {
                 int hiddenSize = Integer.parseInt(hiddenSizeField.getText());
                 int hiddenLayers = Integer.parseInt(hiddenLayersField.getText());
                 double targetAccuracy = Double.parseDouble(targetAccField.getText());
+                int runs = Integer.parseInt(runsField.getText());
 
                 AlgoFunctions af = new AlgoFunctions();
                 statusLabel.setText("MLP training started...");
 
-                if (af.runMLP(iterations, 10, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
+                if (af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
                         targetAccuracy)) {
                     statusLabel.setText("MLP training finished");
 
@@ -152,6 +155,8 @@ public class UI extends JFrame {
 
         panel.add(new JLabel("Iterations:"));
         panel.add(iterationsField);
+        panel.add(new JLabel("Runs:"));
+        panel.add(runsField);
         panel.add(new JLabel("Learning Rate:"));
         panel.add(learningRateField);
         panel.add(new JLabel("Seed:"));
