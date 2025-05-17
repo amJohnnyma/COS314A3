@@ -2,15 +2,10 @@ package com;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import weka.core.pmml.Array;
-
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -25,7 +20,7 @@ public class MLP implements Serializable {
     private List<String> inputsTime = new ArrayList<>(); // Orderof each 5 inputs//might be useless
     private List<Double> labels = new ArrayList<>(); // expected output (last input)
     private Neuron outputNeuron; // one per label
-    private int numSamples = 0;
+   // private int numSamples = 0;
     private double learningRate = 0.0;
     private long seed = 0;
 
@@ -33,10 +28,12 @@ public class MLP implements Serializable {
     public Vector<Double> losses = new Vector<Double>();
     public Vector<Double> avgGradient = new Vector<Double>();
     public Vector<Double> deltaValues = new Vector<Double>();
+    /*
     private Vector<Double> predictedValues = new Vector<Double>();
     private Vector<Double> accuracyOverTime = new Vector<Double>();
     private Vector<Double> recallOverTime = new Vector<Double>();
     private Vector<Double> f1ScoreOverTime = new Vector<Double>();
+    */
     public Vector<Double> avgWeights = new Vector<>();
     public Vector<Double> avgBiases = new Vector<>();
     Vector<Long> epochTimes = new Vector<>();    
@@ -74,7 +71,7 @@ public class MLP implements Serializable {
                         }
                     }
                 } else {
-                    numSamples++;
+               //     numSamples++;
                     double[] row = new double[6];
                     for (int k = 0; k < values.length; k++) {
                         row[k] = Double.parseDouble(values[k]);
@@ -208,7 +205,7 @@ public class MLP implements Serializable {
 
                 double batchLoss = 0.0;
 
-                List<double[]> activations = new ArrayList<>();
+            //    List<double[]> activations = new ArrayList<>();
                 List<Double> predictions = new ArrayList<>();
 
                 for (int b = 0; b < batchInputs.size(); b++) {
@@ -261,7 +258,7 @@ public class MLP implements Serializable {
     }
 public double testNetwork() {
     int correct = 0;
-    double totalLoss = 0.0;
+ //   double totalLoss = 0.0;
 
     for (int i = 0; i < inputs.size(); i++) {
         double[] input = inputs.get(i);
@@ -276,11 +273,11 @@ public double testNetwork() {
             correct++;
         }
 
-        totalLoss += lossFunction(input, expected, prediction);
+   //     totalLoss += lossFunction(input, expected, prediction);
     }
 
     double accuracy = (double) correct / inputs.size();
-    double avgLoss = totalLoss / inputs.size();
+   // double avgLoss = totalLoss / inputs.size();
 
 
     return accuracy;
@@ -555,6 +552,7 @@ Add serialVersionUID	✅	Strongly recommended.
 
     // Method to load the model from a file
     public static MLP loadModel(String filename) {
+        System.out.println("Loading model");
         MLP mlp = null;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             mlp = (MLP) in.readObject(); // Read the object from the file
@@ -593,9 +591,12 @@ Add serialVersionUID	✅	Strongly recommended.
         avgBiases.add(totalBias / biasCount);
     }
 
-    private double getCurrentLoss() {
+    /*
+      private double getCurrentLoss() {
         return losses.lastElement();
     }
+     */
+
 
 }
 

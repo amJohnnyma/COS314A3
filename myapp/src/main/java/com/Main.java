@@ -3,14 +3,6 @@ package com;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import org.jfree.chart.util.UnitType;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import java.io.FileWriter;
-import java.io.IOException;
 
 //smoothing tool
 
@@ -31,7 +23,7 @@ WithStops/_Batch_16_HS_32_LR_0.01_Seed_-9192080552531894582.json
 public class Main {
     public static void main(String[] args) {
 
-        double[] lr = { 0.1, 0.05, 0.01 };
+    //    double[] lr = { 0.1, 0.05, 0.01 };
         // long seed = 0;
         Random r = new Random();
 

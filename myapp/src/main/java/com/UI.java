@@ -1,6 +1,8 @@
 package com;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 import java.awt.*;
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class UI extends JFrame {
     // Function modes
     private static final String MODE_SMOOTHING = "Smoothing Graphs";
     private static final String MODE_MLP = "RunMLP";
+    private static final String MODE_MLP_TEST = "TestMLP";
     private static final String MODE_DT = "RunDT";
 
     private String[] functions = { MODE_SMOOTHING, MODE_MLP };
@@ -55,46 +58,64 @@ public class UI extends JFrame {
     }
 
     private JPanel createSmoothingPanel() {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout(10, 10));
 
-        loadButton = new JButton("Load Metrics JSON");
-        generateButton = new JButton("Generate Selected File");
-        generateButton.setEnabled(false);
-        processAllButton = new JButton("Process all Files");
-
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
+        topPanel.add(loadButton = new JButton("Load Metrics JSON"));
+        topPanel.add(Box.createHorizontalStrut(15));
+        topPanel.add(new JLabel("Smoothing Window:"));
+        topPanel.add(Box.createHorizontalStrut(10));
         smoothingSlider = new JSlider(1, 200, 15);
         smoothingSlider.setMajorTickSpacing(20);
         smoothingSlider.setPaintTicks(true);
         smoothingSlider.setPaintLabels(true);
+        topPanel.add(smoothingSlider);
 
-        panel.add(loadButton);
-        panel.add(new JLabel("Smoothing Window:"));
-        panel.add(smoothingSlider);
-        panel.add(generateButton);
-        panel.add(processAllButton);
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
+        generateButton = new JButton("Generate Selected File");
+        generateButton.setEnabled(false);
+        processAllButton = new JButton("Process All Files");
+        bottomPanel.add(generateButton);
+        bottomPanel.add(processAllButton);
+
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         // Listeners
         loadButton.addActionListener(e -> loadMetrics());
         generateButton.addActionListener(e -> generateChart());
         processAllButton.addActionListener(e -> batchLoadMetrics());
 
-        return panel;
+        return mainPanel;
     }
 
     private JPanel createMLPPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2, 10, 10));
 
-        JTextField iterationsField = new JTextField("10");
+        JTextField iterationsField = new JTextField("1000");
         JTextField learningRateField = new JTextField("0.01");
-        JTextField seedField = new JTextField("123");
-        JTextField batchSizeField = new JTextField("32");
-        JTextField hiddenSizeField = new JTextField("64");
+        JTextField seedField = new JTextField("0");
+        JTextField batchSizeField = new JTextField("16");
+        JTextField hiddenSizeField = new JTextField("32");
         JTextField hiddenLayersField = new JTextField("2");
         JTextField targetAccField = new JTextField("0.95");
 
         JButton runMLPButton = new JButton("Run MLP");
+        JButton testMLPButton = new JButton("Test MLP");
+        JButton loadMLPButton = new JButton("Load MLP");
+
+        loadMLPButton.addActionListener(e -> {
+
+            loadMLP();
+            if (selectedFile.exists()) {
+                testMLPButton.setEnabled(true);
+
+            }
+        });
 
         runMLPButton.addActionListener(e -> {
             try {
@@ -107,14 +128,26 @@ public class UI extends JFrame {
                 double targetAccuracy = Double.parseDouble(targetAccField.getText());
 
                 AlgoFunctions af = new AlgoFunctions();
-                af.runMLP(iterations, 1, learningRate, seed, batchSize, hiddenSize, hiddenLayers, targetAccuracy);
-
                 statusLabel.setText("MLP training started...");
+
+                if (af.runMLP(iterations, 10, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
+                        targetAccuracy)) {
+                    statusLabel.setText("MLP training finished");
+
+                } else {
+                    statusLabel.setText("MLP training started...");
+
+                }
 
             } catch (Exception ex) {
                 statusLabel.setText("Invalid MLP parameter input.");
                 ex.printStackTrace();
             }
+        });
+        testMLPButton.setEnabled(false);
+        testMLPButton.addActionListener(e -> {
+            AlgoFunctions af = new AlgoFunctions();
+            af.testMLP(selectedFile.getName());
         });
 
         panel.add(new JLabel("Iterations:"));
@@ -132,12 +165,14 @@ public class UI extends JFrame {
         panel.add(new JLabel("Target Accuracy:"));
         panel.add(targetAccField);
         panel.add(runMLPButton);
+        panel.add(testMLPButton);
+        panel.add(loadMLPButton);
 
         return panel;
     }
 
     private void batchLoadMetrics() {
-        File dir = new File(System.getProperty("user.dir") + "/myapp/WithStops/");
+        File dir = new File(System.getProperty("user.dir") + "/WithStops/");
         File[] files = dir.listFiles((d, name) -> name.endsWith(".json"));
 
         if (files != null && files.length > 0) {
@@ -162,7 +197,7 @@ public class UI extends JFrame {
     }
 
     private void loadMetrics() {
-        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir") + "/myapp/WithStops/");
+        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir") + "/WithStops/");
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             selectedFile = fileChooser.getSelectedFile();
@@ -174,6 +209,23 @@ public class UI extends JFrame {
                 statusLabel.setText("Failed to load metrics file.");
                 generateButton.setEnabled(false);
             }
+        }
+    }
+
+    private void loadMLP() {
+        JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));
+
+        // Set to only allow file selection (not directories)
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+
+        // Filter for .mlp files
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("MLP Model Files", "mlp");
+        fileChooser.setFileFilter(filter);
+
+        // Show dialog
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            selectedFile = fileChooser.getSelectedFile();
         }
     }
 
