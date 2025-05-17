@@ -483,6 +483,7 @@ Add serialVersionUID	✅	Strongly recommended.
 
     // Method to load the model from a file
     public static MLP loadModel(String filename) {
+        System.out.println("Loading model");
         MLP mlp = null;
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             mlp = (MLP) in.readObject(); // Read the object from the file

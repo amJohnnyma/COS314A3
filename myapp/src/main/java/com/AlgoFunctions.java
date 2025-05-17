@@ -3,17 +3,17 @@ package com;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.TimeUnit;
+
 
 public class AlgoFunctions {
 
-    public void runMLP(int iterations, int runs, double learningRate, long seed, int batchSize, int hiddenSize, int hiddenLayers, double targetAccuracy) {
-        boolean useRandomSeeds = true;
-        if(seed != 0)
-        {
-            useRandomSeeds = false;
-        }
+    public boolean runMLP(int iterations, int runs, double learningRate, long seed, int batchSize, int hiddenSize, int hiddenLayers, double targetAccuracy) {
+    AtomicInteger completed = new AtomicInteger(0);  // Shared thread-safe counter
 
-        int numRuns = 0;
+        boolean useRandomSeeds = (seed == 0);
+        final int numRuns;
         if(!useRandomSeeds)
         {
             numRuns = 1; //no need for more runs since fixed seed
@@ -25,12 +25,10 @@ public class AlgoFunctions {
 
         // Create a thread pool with N threads (adjust based on CPU cores)
         int numThreads = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads - 2);
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads-1);
 
         for (int k = 0; k < numRuns; k++) {
 
-            final String chartName = "TRAINING_Batch_" + batchSize + "_HS_" + hiddenSize
-                    + "_LR_" + learningRate + "_Seed_" + seed;
             final long s;
             if(useRandomSeeds)
             {
@@ -40,9 +38,15 @@ public class AlgoFunctions {
                 s = seed;
             }
 
+                        final int it = k;
+            final String chartName = "TRAINING_Batch_" + batchSize + "_HS_" + hiddenSize
+                    + "_LR_" + learningRate + "_Seed_" + s;
+//System.out.println("Training..." + k);
             executor.submit(() -> {
                 try {
-                    MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, s,
+                 //   System.out.println("Thread handled");
+                  //  System.out.println(System.getProperty("user.dir") +"/myapp/"+ "src/data/BTC_train.csv");
+                    MLP mlp = new MLP(System.getProperty("user.dir") +"/myapp/"+ "src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, s,
                             learningRate);
                     mlp.trainNetwork(iterations, batchSize, 50, 0.01);
 
@@ -70,13 +74,36 @@ public class AlgoFunctions {
                     System.err.println("Failed Training: " + chartName);
                     e.printStackTrace();
                 }
-
+                int progress = completed.incrementAndGet();
+        System.out.println("Iteration " + progress + " / " + numRuns);
 
             });
         }
 
-        // Shutdown the executor and wait for all tasks to finish
-        executor.shutdown();
+try {
+    executor.shutdown();
+    return executor.awaitTermination(1, TimeUnit.HOURS);
+} catch (InterruptedException e) {
+    e.printStackTrace();
+    return false;
+}
+
+    }
+
+    public void testMLP(String filename)
+    {
+        try
+        {
+           // System.out.println(filename);
+            MLP mlp = MLP.loadModel(System.getProperty("user.dir") + "/" + filename);
+         //   System.out.println("Load model");
+            double accuracy = mlp.testNetwork();
+            System.out.println("Accuracy " + accuracy);
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
 }
