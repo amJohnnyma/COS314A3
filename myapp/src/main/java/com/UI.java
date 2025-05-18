@@ -110,6 +110,14 @@ public class UI extends JFrame {
         JButton testMLPButton = new JButton("Test MLP");
         JButton loadMLPButton = new JButton("Load MLP");
 
+        JTextArea consoleArea = new JTextArea("Output");
+        consoleArea.setLineWrap(true);
+        consoleArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(consoleArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+
         loadMLPButton.addActionListener(e -> {
 
             loadMLP();
@@ -136,7 +144,6 @@ public class UI extends JFrame {
                 if (af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
                         targetAccuracy)) {
                     statusLabel.setText("MLP training finished");
-
                 } else {
                     statusLabel.setText("MLP training started...");
 
@@ -150,7 +157,7 @@ public class UI extends JFrame {
         testMLPButton.setEnabled(false);
         testMLPButton.addActionListener(e -> {
             AlgoFunctions af = new AlgoFunctions();
-            af.testMLP(selectedFile.getName());
+            consoleArea.setText(af.testMLP(selectedFile.getName()));
         });
 
         panel.add(new JLabel("Iterations:"));
@@ -172,6 +179,7 @@ public class UI extends JFrame {
         panel.add(runMLPButton);
         panel.add(testMLPButton);
         panel.add(loadMLPButton);
+        panel.add(scrollPane);
 
         return panel;
     }

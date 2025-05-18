@@ -283,7 +283,7 @@ public double testNetwork() {
     return accuracy;
 }
 
-public double networkRWTest () {
+public String networkRWTest () {
     List<double[]> testInputs = new ArrayList<>();
     List<Double> testLabels = new ArrayList<>();
     
@@ -322,7 +322,7 @@ public double networkRWTest () {
     } catch (IOException e) {
         System.err.println("Error reading test file: " + e.getMessage());
         e.printStackTrace();
-        return 0.0;  // Return 0 accuracy on error
+        return "";  // Return 0 accuracy on error
     }
     
     System.out.println("Loaded " + testInputs.size() + " test samples");
@@ -331,6 +331,7 @@ public double networkRWTest () {
     int correct = 0;
     double totalLoss = 0.0;
     
+    int tp = 0, tn = 0, fp = 0, fn = 0;
     for (int i = 0; i < testInputs.size(); i++) {
         double[] input = testInputs.get(i);
         double expected = testLabels.get(i);
@@ -343,19 +344,33 @@ public double networkRWTest () {
         if (predRounded == labelRounded) {
             correct++;
         }
+
+    if (predRounded == 1 && labelRounded == 1) tp++;
+    else if (predRounded == 0 && labelRounded == 0) tn++;
+    else if (predRounded == 1 && labelRounded == 0) fp++;
+    else if (predRounded == 0 && labelRounded == 1) fn++;
         
         totalLoss += lossFunction(input, expected, prediction);
     }
     
     double accuracy = (double) correct / testInputs.size();
     double avgLoss = totalLoss / testInputs.size();
+
+    double precision = tp + fp == 0 ? 0 : (double) tp / (tp + fp);
+    double recall = tp + fn == 0 ? 0 : (double) tp / (tp + fn);
+    double f1 = precision + recall == 0 ? 0 : 2 * precision * recall / (precision + recall);
     
-    System.out.println("Test Results:");
-    System.out.println("Accuracy: " + (accuracy * 100) + "%");
-    System.out.println("Average Loss: " + avgLoss);
+String resultSummary = String.format(
+    "Test Results: Accuracy = %.2f%% | Avg Loss = %.4f | Precision = %.4f | Recall = %.4f | F1 Score = %.4f",
+    accuracy * 100, avgLoss, precision, recall, f1
+);
+
+//System.out.println(resultSummary);
     
-    return accuracy;
+    return resultSummary;
 }
+
+
 
 
     //////////// Helper functions// Could probably be its own class
