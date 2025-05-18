@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 public class AlgoFunctions {
 
     public boolean runMLP(int iterations, int runs, double learningRate, long seed, int batchSize, int hiddenSize,
-            int hiddenLayers, double targetAccuracy) {
+            int hiddenLayers, double targetAccuracy, int patience, double minImpro) {
         AtomicInteger completed = new AtomicInteger(0); // Shared thread-safe counter
 
         boolean useRandomSeeds = (seed == 0);
@@ -45,7 +45,7 @@ public class AlgoFunctions {
                     MLP mlp = new MLP(System.getProperty("user.dir") + "/myapp/" + "src/data/BTC_train.csv", hiddenSize,
                             hiddenLayers, 5, s,
                             learningRate);
-                    mlp.trainNetwork(iterations, batchSize, 50, 0.01);
+                    mlp.trainNetwork(iterations, batchSize, patience, minImpro);
 
                     double accuracy = mlp.testNetwork();
                     if (accuracy >= targetAccuracy) {

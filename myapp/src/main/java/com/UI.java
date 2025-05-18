@@ -104,6 +104,8 @@ public class UI extends JFrame {
         JTextField hiddenSizeField = new JTextField("32");
         JTextField hiddenLayersField = new JTextField("2");
         JTextField targetAccField = new JTextField("0.95");
+        JTextField patienceField = new JTextField("50");
+        JTextField minImproField = new JTextField("0.01");
 
 
         JButton runMLPButton = new JButton("Run MLP");
@@ -137,12 +139,14 @@ public class UI extends JFrame {
                 int hiddenLayers = Integer.parseInt(hiddenLayersField.getText());
                 double targetAccuracy = Double.parseDouble(targetAccField.getText());
                 int runs = Integer.parseInt(runsField.getText());
+                double minImpro = Double.parseDouble(minImproField.getText());
+                int patience = Integer.parseInt(patienceField.getText());
 
                 AlgoFunctions af = new AlgoFunctions();
                 statusLabel.setText("MLP training started...");
 
                 if (af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
-                        targetAccuracy)) {
+                        targetAccuracy, patience, minImpro)) {
                     statusLabel.setText("MLP training finished");
                 } else {
                     statusLabel.setText("MLP training started...");
@@ -176,6 +180,10 @@ public class UI extends JFrame {
         panel.add(hiddenLayersField);
         panel.add(new JLabel("Target Accuracy:"));
         panel.add(targetAccField);
+        panel.add(new JLabel("Patience:"));
+        panel.add(patienceField);
+        panel.add(new JLabel("Min improvement:"));
+        panel.add(minImproField);
         panel.add(runMLPButton);
         panel.add(testMLPButton);
         panel.add(loadMLPButton);
