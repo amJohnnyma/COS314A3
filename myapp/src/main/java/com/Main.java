@@ -1,15 +1,15 @@
 package com;
-import main.java.com.CryptoStockPredictor;
+
 /**
- * Hello world!
- *
+ * Main class to run the Cryptocurrency Stock Predictor
  */
 public class Main 
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
-        CryptoStockPredictor DT = new CryptoStockPredictor();
-        DT.DT();
+      
+    CryptoStockPredictor DT = new CryptoStockPredictor();
+    DT.DT();
+        System.out.println("=== Test Complete ===");
     }
 }
