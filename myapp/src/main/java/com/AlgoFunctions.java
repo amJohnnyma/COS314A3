@@ -1,14 +1,18 @@
 package com;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.TimeUnit;
 
 public class AlgoFunctions {
 
-    public boolean runMLP(int iterations, int runs, double learningRate, long seed, int batchSize, int hiddenSize,
+    public List<String> runMLP(int iterations, int runs, double learningRate, long seed, int batchSize, int hiddenSize,
             int hiddenLayers, double targetAccuracy, int patience, double minImpro) {
         AtomicInteger completed = new AtomicInteger(0); // Shared thread-safe counter
 
@@ -24,6 +28,8 @@ public class AlgoFunctions {
         // Create a thread pool with N threads (adjust based on CPU cores)
         int numThreads = Runtime.getRuntime().availableProcessors();
         ExecutorService executor = Executors.newFixedThreadPool(numThreads - 1);
+List<String> successfulRuns = Collections.synchronizedList(new ArrayList<>());
+        List<Future<String>> futures = new ArrayList<>();
 
         for (int k = 0; k < numRuns; k++) {
 
@@ -37,7 +43,7 @@ public class AlgoFunctions {
             final String chartName = "TRAINING_Batch_" + batchSize + "_HS_" + hiddenSize
                     + "_LR_" + learningRate + "_Seed_" + s;
             // System.out.println("Training..." + k);
-            executor.submit(() -> {
+            futures.add(executor.submit(() -> {
                 try {
                     // System.out.println("Thread handled");
                     // System.out.println(System.getProperty("user.dir") +"/myapp/"+
@@ -47,8 +53,8 @@ public class AlgoFunctions {
                             learningRate);
                     mlp.trainNetwork(iterations, batchSize, patience, minImpro);
 
-                    double accuracy = mlp.testNetwork();
-                    if (accuracy >= targetAccuracy) {
+                    String[] accuracy = mlp.testNetwork();
+                    if (Double.parseDouble(accuracy[0]) >= targetAccuracy) {
                         // Prepare a data holder class or map
                         TrainingMetrics data = new TrainingMetrics(
                                 mlp.getLosses(),
@@ -60,10 +66,11 @@ public class AlgoFunctions {
                         data.saveRawData(chartName + ".json");
 
                         // Save the model as usual
-                        mlp.saveModel(accuracy + " : " + chartName + ".mlp");
+                        mlp.saveModel(accuracy[0] + " : " + chartName + ".mlp");
                         System.out.println("Finished: " + chartName);
 
                         // mlp.testModel
+                        successfulRuns.add(accuracy[1]);
 
                     }
                 } catch (Exception e) {
@@ -72,17 +79,19 @@ public class AlgoFunctions {
                 }
                 int progress = completed.incrementAndGet();
                 System.out.println("Iteration " + progress + " / " + numRuns);
-
-            });
+                return new String("Iteration " + progress + " / " + numRuns);
+            }));
         }
 
+        executor.shutdown();
         try {
-            executor.shutdown();
-            return executor.awaitTermination(1, TimeUnit.HOURS);
+            executor.awaitTermination(1, TimeUnit.HOURS);
         } catch (InterruptedException e) {
             e.printStackTrace();
-            return false;
         }
+
+        // Return all collected successful results
+        return successfulRuns;
 
     }
 

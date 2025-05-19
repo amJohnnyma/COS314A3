@@ -145,12 +145,13 @@ public class UI extends JFrame {
                 AlgoFunctions af = new AlgoFunctions();
                 statusLabel.setText("MLP training started...");
 
-                if (af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
-                        targetAccuracy, patience, minImpro)) {
+                List<String> out = af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
+                        targetAccuracy, patience, minImpro);
+                if (!out.isEmpty()) {
                     statusLabel.setText("MLP training finished");
+                    consoleArea.setText(String.join("\n\n", out));
                 } else {
                     statusLabel.setText("MLP training started...");
-
                 }
 
             } catch (Exception ex) {
