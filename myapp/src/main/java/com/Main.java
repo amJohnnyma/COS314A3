@@ -1,14 +1,18 @@
 package com;
+
 /**
- * Hello world!
- *
+ * Main class to run the Cryptocurrency Stock Predictor
  */
 public class Main 
 {
     public static void main( String[] args )
     {
-        System.out.println( "Hello World!" );
-        WekaJ48Implementation DT = new WekaJ48Implementation();
+      
+        CryptoStockPredictor DT = new CryptoStockPredictor();
         DT.DT();
+        System.out.println("=== Test Complete ===");
+        // DT.setUnpruned(true);
+        // DT.DT();
     }
+    
 }
