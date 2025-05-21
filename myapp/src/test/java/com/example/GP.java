@@ -1,17 +1,10 @@
 package com.example;
 
 import java.io.IOException;
-
-import org.apache.commons.lang3.ArrayUtils;
-
-import java_cup.reduce_action;
-
 import java.util.*;
 
-import weka.knowledgeflow.Data;
-
 public class GP {
-  int MaxDepth = 7;
+  int MaxDepth = 5;
   int MaxGenerations;
   int PopulationSize;
   long seed;
@@ -41,7 +34,24 @@ public class GP {
     }
   }
 
-  void Algorithm() {
+  ArrayList<Individual> getFinalPopulation(){
+    return Population;
+  }
+
+  Individual getBestIndividual(){
+    double MaxFitness = Double.NEGATIVE_INFINITY;
+    Individual BestIndividual = null;
+    for(Individual current: Population){
+      if(current.fitness > MaxFitness){
+        BestIndividual = current.clone();
+        MaxFitness = current.fitness;
+      }
+    }
+
+    return BestIndividual;
+  }
+
+  public void Algorithm() {
     ArrayList<Individual> tempPopulation = GenerateInitialPopulation();
     int count = 0;
     while (count < MaxGenerations) {
@@ -215,10 +225,13 @@ public class GP {
   }
 
   String getRandomFunction() {
-    String[] allFunctions = ArrayUtils.addAll(Arithmetic, Comparison);
-    allFunctions = ArrayUtils.addAll(allFunctions, Logical);
+    // Replace ArrayUtils.addAll with manual concatenation
+    String[] allFunctions = new String[Arithmetic.length + Comparison.length + Logical.length];
+    System.arraycopy(Arithmetic, 0, allFunctions, 0, Arithmetic.length);
+    System.arraycopy(Comparison, 0, allFunctions, Arithmetic.length, Comparison.length);
+    System.arraycopy(Logical, 0, allFunctions, Arithmetic.length + Comparison.length, Logical.length);
     return allFunctions[random.nextInt(allFunctions.length)];
-  }
+}
 
   double[] getTerminalSet() {
     int SetSize = trainingSet.getSize();

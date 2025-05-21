@@ -1,1 +1,7 @@
-com/example/AppTest.class
+com/example/Individual.class
+com/example/GP.class
+com/example/TerminalNode.class
+com/example/Dataset.class
+com/example/FunctionNode.class
+com/example/Node.class
+com/example/Main.class

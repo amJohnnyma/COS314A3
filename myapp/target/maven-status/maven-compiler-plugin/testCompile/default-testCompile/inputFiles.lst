@@ -1,1 +1,7 @@
-/mnt/c/Users/henco/OneDrive/Desktop/BSCCS/SEMESTER_1/COS 314(AI)/Pracs/Assignment 3/myapp/src/test/java/com/example/AppTest.java
+/root/COS314A3/myapp/src/test/java/com/example/Main.java
+/root/COS314A3/myapp/src/test/java/com/example/FunctionNode.java
+/root/COS314A3/myapp/src/test/java/com/example/TerminalNode.java
+/root/COS314A3/myapp/src/test/java/com/example/Node.java
+/root/COS314A3/myapp/src/test/java/com/example/GP.java
+/root/COS314A3/myapp/src/test/java/com/example/Dataset.java
+/root/COS314A3/myapp/src/test/java/com/example/Individual.java

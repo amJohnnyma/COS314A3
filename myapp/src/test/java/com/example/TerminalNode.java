@@ -1,7 +1,5 @@
 package com.example;
 
-import org.netlib.util.doubleW;
-
 public class TerminalNode extends Node {
   double Value;
   String label;
