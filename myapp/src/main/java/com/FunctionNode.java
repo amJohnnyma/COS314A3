@@ -1,4 +1,4 @@
-package com.example;
+package com;
 
 public class FunctionNode extends Node {
   String operator;
@@ -66,6 +66,30 @@ public class FunctionNode extends Node {
     Node leftClone = (left != null) ? left.clone() : null;
     Node rightClone = (right != null) ? right.clone() : null;
     return new FunctionNode(operator, leftClone, rightClone);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder(operator);
+    if (left != null) {
+      sb.append("/").append(left.toString());
+    }
+    if (right != null) {
+      sb.append("/").append(right.toString());
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public Integer getSize() {
+    int size = 1;
+    if (left != null) {
+      size += left.getSize();
+    }
+    if (right != null) {
+      size += right.getSize();
+    }
+    return size;
   }
 
   void setLeft(Node child) {

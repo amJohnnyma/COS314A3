@@ -1,4 +1,4 @@
-package com.example;
+package com;
 
 import java.io.IOException;
 import java.util.*;
@@ -27,8 +27,8 @@ public class GP {
     random = new Random(seed);
 
     try {
-      trainingSet = new Dataset("BTC_train.csv");
-      testingSet = new Dataset("BTC_test.csv");
+      trainingSet = new Dataset("src/data/BTC_train.csv");
+      testingSet = new Dataset("src/data/BTC_test.csv");
     } catch (IOException e) {
       System.out.println(e.getMessage());
     }
@@ -44,6 +44,7 @@ public class GP {
     for(Individual current: Population){
       if(current.fitness > MaxFitness){
         BestIndividual = current.clone();
+        BestIndividual.setFitness(current.fitness);
         MaxFitness = current.fitness;
       }
     }
@@ -55,6 +56,11 @@ public class GP {
     ArrayList<Individual> tempPopulation = GenerateInitialPopulation();
     int count = 0;
     while (count < MaxGenerations) {
+      System.out.println("Individuals: Iteration "+count);
+      for(Individual temp: tempPopulation){
+        System.out.println("Size of individual: "+ temp.getSize());
+        System.out.println(temp.toString());
+      }
       CalculateFitness(tempPopulation);
       // get parents
       Individual parentOne = Tournament(tempPopulation);
@@ -71,6 +77,8 @@ public class GP {
 
       count++;
     }
+
+    Population = tempPopulation;
   }
 
   ArrayList<Individual> SteadyState(ArrayList<Individual> oldGeneration, ArrayList<Individual> offspring) {
@@ -80,6 +88,8 @@ public class GP {
       boolean replaced = false;
       for (int attempts = 0; attempts < 10; attempts++) {
         int index = random.nextInt(newGeneration.size());
+        // System.out.println("Fintess of child: "+child.fitness);
+        // System.out.println("New generation fitsness: "+newGeneration.get(index).fitness);
         if (child.fitness > newGeneration.get(index).fitness) {
           newGeneration.set(index, child);
           replaced = true;
@@ -179,10 +189,12 @@ public class GP {
     for (int i = 0; i < PopulationSize; i++) {
       if (i < PopulationSize / 2) {
         // create individual using full method
-        tempIndiv = fullGeneration(MaxDepth);
+        System.out.println("Entered fullGeneration");
+        tempIndiv = fullGeneration(0);
       } else {
         // create individual using grow method
-        tempIndiv = growGeneration(MaxDepth);
+        System.out.println("Entered growGeneration");
+        tempIndiv = growGeneration(0);
       }
       tempSolution.add(tempIndiv);
     }
@@ -216,7 +228,8 @@ public class GP {
         bindInputs(current.getRoot(), inputSet);
 
         double result = current.getRoot().evaluate();
-        if ((result >= 0.5 && expectedOutput == 1) || (result < 0.5 && expectedOutput == 0)) {
+        System.out.println("Result: "+result);
+        if ((result >= 1 && expectedOutput == 1) || (result < 1 && expectedOutput == 0)) {
           CorrectCount++;
         }
       }

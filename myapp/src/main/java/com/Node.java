@@ -1,4 +1,4 @@
-package com.example;
+package com;
 
 abstract class Node {
   Node left, right;
@@ -20,5 +20,7 @@ abstract class Node {
 
   abstract double evaluate();
   public abstract Node clone();
+  public abstract String toString();
+  public abstract Integer getSize();
 }
 

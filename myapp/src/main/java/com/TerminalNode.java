@@ -1,4 +1,4 @@
-package com.example;
+package com;
 
 public class TerminalNode extends Node {
   double Value;
@@ -28,6 +28,16 @@ public class TerminalNode extends Node {
     TerminalNode clone = new TerminalNode(this.label);
     clone.SetValue(this.Value);
     return clone;
+  }
+
+  @Override
+  public String toString(){
+    return label + ": "+ Value;
+  }
+
+  @Override
+  public Integer getSize(){
+    return 1;
   }
 
   double getValue() {
