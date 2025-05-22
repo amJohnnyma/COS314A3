@@ -82,13 +82,13 @@ public class Main {
             executor.shutdown();
         } else if (answer.equals("2")) {
             // Herrie Main code
-            GP gp = new GP(10, 6);
+            GP gp = new GP(100, 20);
             gp.Algorithm();
             Individual besIndividual = gp.getBestIndividual();
             System.out.println();
             System.out.println(besIndividual.toString());
             System.out.println("Fitness of best individual: "+ besIndividual.fitness);
-            System.out.println("Check");
+            System.out.println("Accuracy of best individual: "+ gp.GetAccuracyOfBestIndividual());
         }
 
     }

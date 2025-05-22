@@ -70,14 +70,7 @@ public class FunctionNode extends Node {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder(operator);
-    if (left != null) {
-      sb.append("/").append(left.toString());
-    }
-    if (right != null) {
-      sb.append("/").append(right.toString());
-    }
-    return sb.toString();
+    return operator;
   }
 
   @Override
@@ -90,6 +83,19 @@ public class FunctionNode extends Node {
       size += right.getSize();
     }
     return size;
+  }
+
+  @Override
+  public String toTreeString(String indent) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(indent).append("Function: ").append(operator).append("\n");
+
+    if (left != null)
+      sb.append(left.toTreeString(indent + "  "));
+    if (right != null)
+      sb.append(right.toTreeString(indent + "  "));
+
+    return sb.toString();
   }
 
   void setLeft(Node child) {

@@ -4,13 +4,14 @@ import java.io.IOException;
 import java.util.*;
 
 public class GP {
-  int MaxDepth = 5;
+  int MaxDepth = 6;
   int MaxGenerations;
   int PopulationSize;
   long seed;
   Random random;
   ArrayList<Individual> Population;
   double MutationRate = 0.12;
+  double CrossoverRate = 0.8;
 
   String[] Arithmetic = { "+", "-", "*", "/", "abs", "log", "sqrt" };
   String[] Comparison = { ">", "<", ">=", "<=", "==" };
@@ -18,6 +19,38 @@ public class GP {
   String[] TerminalSet = { "X1", "X2", "X3", "X4", "X5" };
 
   Dataset trainingSet, testingSet;
+
+  GP(int MaxGenerations, int PopSize, String TrainingPath, String TestingPath) {
+    this.MaxGenerations = MaxGenerations;
+    this.PopulationSize = PopSize;
+
+    seed = System.currentTimeMillis();
+    random = new Random(seed);
+
+    try {
+      trainingSet = new Dataset(TrainingPath);
+      testingSet = new Dataset(TestingPath);
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  GP(int MaxGenerations, int PopSize, double CrossRate, double MutationR, String TrainingPath, String TestingPath) {
+    this.MaxGenerations = MaxGenerations;
+    this.PopulationSize = PopSize;
+    this.CrossoverRate = CrossRate;
+    this.MutationRate = MutationR;
+
+    seed = System.currentTimeMillis();
+    random = new Random(seed);
+
+    try {
+      trainingSet = new Dataset(TrainingPath);
+      testingSet = new Dataset(TestingPath);
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
 
   GP(int MaxGenerations, int PopSize) {
     this.MaxGenerations = MaxGenerations;
@@ -34,15 +67,32 @@ public class GP {
     }
   }
 
-  ArrayList<Individual> getFinalPopulation(){
+  GP(int MaxGenerations, int PopSize, double CrossR, double MutationR) {
+    this.MaxGenerations = MaxGenerations;
+    this.PopulationSize = PopSize;
+    this.CrossoverRate = CrossR;
+    this.MutationRate = MutationR;
+
+    seed = System.currentTimeMillis();
+    random = new Random(seed);
+
+    try {
+      trainingSet = new Dataset("src/data/BTC_train.csv");
+      testingSet = new Dataset("src/data/BTC_test.csv");
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  ArrayList<Individual> getFinalPopulation() {
     return Population;
   }
 
-  Individual getBestIndividual(){
+  Individual getBestIndividual() {
     double MaxFitness = Double.NEGATIVE_INFINITY;
     Individual BestIndividual = null;
-    for(Individual current: Population){
-      if(current.fitness > MaxFitness){
+    for (Individual current : Population) {
+      if (current.fitness > MaxFitness) {
         BestIndividual = current.clone();
         BestIndividual.setFitness(current.fitness);
         MaxFitness = current.fitness;
@@ -52,21 +102,29 @@ public class GP {
     return BestIndividual;
   }
 
+  double GetAccuracyOfBestIndividual() {
+    return getBestIndividual().fitness / testingSet.getSize() * 100;
+  }
+
   public void Algorithm() {
     ArrayList<Individual> tempPopulation = GenerateInitialPopulation();
     int count = 0;
     while (count < MaxGenerations) {
-      System.out.println("Individuals: Iteration "+count);
-      for(Individual temp: tempPopulation){
-        System.out.println("Size of individual: "+ temp.getSize());
-        System.out.println(temp.toString());
-      }
+      // System.out.println("Individuals: Iteration "+count);
+      // for(Individual temp: tempPopulation){
+      // System.out.println("Size of individual: "+ temp.getSize());
+      // System.out.println(temp.toString());
+      // }
       CalculateFitness(tempPopulation);
       // get parents
       Individual parentOne = Tournament(tempPopulation);
       Individual parentTwo = Tournament(tempPopulation);
       // create offspring
-      Individual[] offspring = crossoverAndMutate(parentOne, parentTwo);
+      Individual[] offspring = {parentOne.clone(), parentTwo.clone()};
+      if (Math.random() < CrossoverRate) {
+        offspring = crossoverAndMutate(parentOne, parentTwo);
+      }
+      
       ArrayList<Individual> OffSpring = new ArrayList<>();
       for (Individual curIndividual : offspring) {
         OffSpring.add(curIndividual);
@@ -89,7 +147,8 @@ public class GP {
       for (int attempts = 0; attempts < 10; attempts++) {
         int index = random.nextInt(newGeneration.size());
         // System.out.println("Fintess of child: "+child.fitness);
-        // System.out.println("New generation fitsness: "+newGeneration.get(index).fitness);
+        // System.out.println("New generation fitsness:
+        // "+newGeneration.get(index).fitness);
         if (child.fitness > newGeneration.get(index).fitness) {
           newGeneration.set(index, child);
           replaced = true;
@@ -187,15 +246,16 @@ public class GP {
     ArrayList<Individual> tempSolution = new ArrayList<>();
     Individual tempIndiv;
     for (int i = 0; i < PopulationSize; i++) {
-      if (i < PopulationSize / 2) {
-        // create individual using full method
-        System.out.println("Entered fullGeneration");
-        tempIndiv = fullGeneration(0);
-      } else {
-        // create individual using grow method
-        System.out.println("Entered growGeneration");
-        tempIndiv = growGeneration(0);
-      }
+      // if (i < PopulationSize / 2) {
+      // // create individual using full method
+      // System.out.println("Entered fullGeneration");
+      // tempIndiv = fullGeneration(0);
+      // } else {
+      // // create individual using grow method
+      // System.out.println("Entered growGeneration");
+      // tempIndiv = growGeneration(0);
+      // }
+      tempIndiv = fullGeneration(0);
       tempSolution.add(tempIndiv);
     }
 
@@ -228,7 +288,8 @@ public class GP {
         bindInputs(current.getRoot(), inputSet);
 
         double result = current.getRoot().evaluate();
-        System.out.println("Result: "+result);
+        // System.out.println("Result: "+result);
+        // System.out.println("ExpectedOutput: "+ expectedOutput);
         if ((result >= 1 && expectedOutput == 1) || (result < 1 && expectedOutput == 0)) {
           CorrectCount++;
         }
@@ -244,7 +305,7 @@ public class GP {
     System.arraycopy(Comparison, 0, allFunctions, Arithmetic.length, Comparison.length);
     System.arraycopy(Logical, 0, allFunctions, Arithmetic.length + Comparison.length, Logical.length);
     return allFunctions[random.nextInt(allFunctions.length)];
-}
+  }
 
   double[] getTerminalSet() {
     int SetSize = trainingSet.getSize();

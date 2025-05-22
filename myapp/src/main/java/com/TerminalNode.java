@@ -31,13 +31,18 @@ public class TerminalNode extends Node {
   }
 
   @Override
-  public String toString(){
-    return label + ": "+ Value;
+  public String toString() {
+    return label + ": " + String.format("%.6f", Value);
   }
 
   @Override
-  public Integer getSize(){
+  public Integer getSize() {
     return 1;
+  }
+
+  @Override
+  public String toTreeString(String indent) {
+    return indent + "Terminal: " + label + " = " + Value + "\n";
   }
 
   double getValue() {

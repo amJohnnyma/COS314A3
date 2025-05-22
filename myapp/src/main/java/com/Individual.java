@@ -25,47 +25,15 @@ public class Individual {
   }
 
   public String toString() {
-    return root.toString();
+    return root.toPrettyString();
   }
 
-  public Integer getSize(){
+  public String toTreeString() {
+    return root.toTreeString("");
+  }
+
+  public Integer getSize() {
     return root.getSize();
-  }
-
-  private void collectTerminalValues(Node node, Map<String, Double> values) {
-    if (node instanceof TerminalNode) {
-      TerminalNode tn = (TerminalNode) node;
-      values.put(tn.label, tn.Value);
-    } else if (node instanceof FunctionNode) {
-      FunctionNode fn = (FunctionNode) node;
-      if (fn.getLeftChild() != null)
-        collectTerminalValues(fn.getLeftChild(), values);
-      if (fn.getRightChild() != null)
-        collectTerminalValues(fn.getRightChild(), values);
-    }
-  }
-
-  private String buildExpression(Node node) {
-    if (node instanceof TerminalNode) {
-      return ((TerminalNode) node).label;
-    } else if (node instanceof FunctionNode) {
-      FunctionNode fn = (FunctionNode) node;
-      String operator = fn.getOperator();
-
-      switch (operator) {
-        case "NOT":
-        case "sqrt":
-        case "abs":
-        case "log":
-          // Unary operators
-          return operator + "(" + buildExpression(fn.getLeftChild()) + ")";
-        default:
-          // Binary operators
-          return "(" + buildExpression(fn.getLeftChild()) + " " + operator + " " + buildExpression(fn.getRightChild())
-              + ")";
-      }
-    }
-    return "";
   }
 
 }
