@@ -47,8 +47,8 @@ public class Main {
                                         learningRate);
                                 mlp.trainNetwork(it, batch, 50, 0.01);
 
-                                double accuracy = mlp.testNetwork();
-                                if (accuracy >= 0.95) 
+                               // double accuracy = mlp.testNetwork();
+                                //if (accuracy >= 0.95) 
                                 {
                                     // Prepare a data holder class or map
                                     TrainingMetrics data = new TrainingMetrics(
@@ -62,7 +62,7 @@ public class Main {
  
 
                                     // Save the model as usual
-                                    mlp.saveModel(accuracy + " : " + chartName + ".mlp");
+                                  //  mlp.saveModel(accuracy + " : " + chartName + ".mlp");
                                     System.out.println("Finished: " + chartName);
 
                                 }

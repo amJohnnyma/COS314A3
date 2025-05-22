@@ -104,11 +104,21 @@ public class UI extends JFrame {
         JTextField hiddenSizeField = new JTextField("32");
         JTextField hiddenLayersField = new JTextField("2");
         JTextField targetAccField = new JTextField("0.95");
+        JTextField patienceField = new JTextField("50");
+        JTextField minImproField = new JTextField("0.01");
 
 
         JButton runMLPButton = new JButton("Run MLP");
         JButton testMLPButton = new JButton("Test MLP");
         JButton loadMLPButton = new JButton("Load MLP");
+
+        JTextArea consoleArea = new JTextArea("Output");
+        consoleArea.setLineWrap(true);
+        consoleArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(consoleArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
 
         loadMLPButton.addActionListener(e -> {
 
@@ -129,17 +139,19 @@ public class UI extends JFrame {
                 int hiddenLayers = Integer.parseInt(hiddenLayersField.getText());
                 double targetAccuracy = Double.parseDouble(targetAccField.getText());
                 int runs = Integer.parseInt(runsField.getText());
+                double minImpro = Double.parseDouble(minImproField.getText());
+                int patience = Integer.parseInt(patienceField.getText());
 
                 AlgoFunctions af = new AlgoFunctions();
                 statusLabel.setText("MLP training started...");
 
-                if (af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
-                        targetAccuracy)) {
+                List<String> out = af.runMLP(iterations, runs, learningRate, seed, batchSize, hiddenSize, hiddenLayers,
+                        targetAccuracy, patience, minImpro);
+                if (!out.isEmpty()) {
                     statusLabel.setText("MLP training finished");
-
+                    consoleArea.setText(String.join("\n\n", out));
                 } else {
                     statusLabel.setText("MLP training started...");
-
                 }
 
             } catch (Exception ex) {
@@ -150,28 +162,33 @@ public class UI extends JFrame {
         testMLPButton.setEnabled(false);
         testMLPButton.addActionListener(e -> {
             AlgoFunctions af = new AlgoFunctions();
-            af.testMLP(selectedFile.getName());
+            consoleArea.setText(af.testMLP(selectedFile.getName()));
         });
 
-        panel.add(new JLabel("Iterations:"));
+        panel.add(new JLabel("Iterations(int):"));
         panel.add(iterationsField);
-        panel.add(new JLabel("Runs:"));
+        panel.add(new JLabel("Runs(int):"));
         panel.add(runsField);
-        panel.add(new JLabel("Learning Rate:"));
+        panel.add(new JLabel("Learning Rate(double):"));
         panel.add(learningRateField);
-        panel.add(new JLabel("Seed:"));
+        panel.add(new JLabel("Seed(long):"));
         panel.add(seedField);
-        panel.add(new JLabel("Batch Size:"));
+        panel.add(new JLabel("Batch Size(int):"));
         panel.add(batchSizeField);
-        panel.add(new JLabel("Hidden Size:"));
+        panel.add(new JLabel("Hidden Size(int):"));
         panel.add(hiddenSizeField);
-        panel.add(new JLabel("Hidden Layers:"));
+        panel.add(new JLabel("Hidden Layers(int):"));
         panel.add(hiddenLayersField);
-        panel.add(new JLabel("Target Accuracy:"));
+        panel.add(new JLabel("Target Accuracy(double):"));
         panel.add(targetAccField);
+        panel.add(new JLabel("Patience(int):"));
+        panel.add(patienceField);
+        panel.add(new JLabel("Min improvement(double):"));
+        panel.add(minImproField);
         panel.add(runMLPButton);
         panel.add(testMLPButton);
         panel.add(loadMLPButton);
+        panel.add(scrollPane);
 
         return panel;
     }
