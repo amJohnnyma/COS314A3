@@ -29,8 +29,9 @@ public class CryptoStockPredictor {
     private boolean noCleanup = false;        // Do cleanup after build
     private boolean collapseTree = true;      // Do collapse the tree
     private boolean useMDLcorrection = false; // Don't use MDL correction
-    private int seed = 1;                     // Seed for randomization
+    private int seed;                         // Seed for randomization (now randomly initialized)
     private boolean subtreeRaising = false;   // Don't perform subtree raising
+    private boolean useRandomSeed = true;     // Flag to use random seed
     
     // Model evaluation metrics
     private double trainingAccuracy = 0.0;
@@ -39,6 +40,39 @@ public class CryptoStockPredictor {
     private double testF1Score = 0.0;
     private int treeSize = 0;
     private int numLeaves = 0;
+
+    // Constructor - initialize with random seed
+    public CryptoStockPredictor() {
+        if (useRandomSeed) {
+            this.seed = generateRandomSeed();
+            System.out.println("Using random seed: " + this.seed);
+        } else {
+            this.seed = 1; // Default seed
+        }
+    }
+    
+    // Constructor with specific seed
+    public CryptoStockPredictor(int seed) {
+        this.seed = seed;
+        this.useRandomSeed = false;
+        System.out.println("Using specified seed: " + this.seed);
+    }
+    
+    /**
+     * Generate a random seed based on current time
+     */
+    private int generateRandomSeed() {
+        Random rand = new Random(System.currentTimeMillis());
+        return rand.nextInt(10000); // Generate seed between 0-9999
+    }
+    
+    /**
+     * Set a new random seed
+     */
+    public void randomizeSeed() {
+        this.seed = generateRandomSeed();
+        System.out.println("New random seed generated: " + this.seed);
+    }
 
     // Getters for model metrics
     public double getTrainingAccuracy() { return trainingAccuracy; }
@@ -83,10 +117,21 @@ public class CryptoStockPredictor {
     public void setUseMDLcorrection(boolean useMDLcorrection) { this.useMDLcorrection = useMDLcorrection; }
     
     public int getSeed() { return seed; }
-    public void setSeed(int seed) { this.seed = seed; }
+    public void setSeed(int seed) { 
+        this.seed = seed;
+        this.useRandomSeed = false;
+    }
     
     public boolean isSubtreeRaising() { return subtreeRaising; }
     public void setSubtreeRaising(boolean subtreeRaising) { this.subtreeRaising = subtreeRaising; }
+    
+    public boolean isUseRandomSeed() { return useRandomSeed; }
+    public void setUseRandomSeed(boolean useRandomSeed) { 
+        this.useRandomSeed = useRandomSeed;
+        if (useRandomSeed) {
+            randomizeSeed();
+        }
+    }
     
     public void DT() {
         System.out.println("Enhanced Cryptocurrency Prediction with Feature Engineering");
@@ -398,9 +443,9 @@ public class CryptoStockPredictor {
         trainingAccuracy = evalOnTrain.pctCorrect();
         System.out.println("Training set accuracy: " + String.format("%.2f%%", trainingAccuracy));
         
-        // Cross-validation on training data
+        // Cross-validation on training data - now using the instance seed
         Evaluation evalTrain = new Evaluation(trainingData);
-        evalTrain.crossValidateModel(classifier, trainingData, 10, new Random(1));
+        evalTrain.crossValidateModel(classifier, trainingData, 10, new Random(this.seed));
         cvAccuracy = evalTrain.pctCorrect();
         System.out.println("Cross-validation accuracy: " + String.format("%.2f%%", cvAccuracy));
         
