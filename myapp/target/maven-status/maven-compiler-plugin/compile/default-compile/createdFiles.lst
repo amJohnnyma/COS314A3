@@ -1,1 +1,15 @@
-com/App.class
+com/Graph.class
+com/AlgoFunctions.class
+com/Dataset.class
+com/TrainingMetrics.class
+com/Neuron.class
+com/Node.class
+com/UI.class
+com/Individual.class
+com/Layer.class
+com/Main.class
+com/GP.class
+com/MLP.class
+com/FunctionNode.class
+com/TerminalNode.class
+

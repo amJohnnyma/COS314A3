@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.example</groupId>
+  <groupId>com</groupId>
   <artifactId>myapp</artifactId>
   <packaging>jar</packaging>
   <version>1.0-SNAPSHOT</version>
@@ -12,7 +12,7 @@
     <maven.compiler.source>11</maven.compiler.source>
     <maven.compiler.target>11</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <exec.mainClass>com.App</exec.mainClass>
+    <exec.mainClass>com.Main</exec.mainClass>
   </properties>
 
   <dependencies>
@@ -27,6 +27,30 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+    <groupId>org.jfree</groupId>
+    <artifactId>jfreechart</artifactId>
+    <version>1.5.3</version>
+</dependency>
+    <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.10.1</version>
+    </dependency>
+
+    <!-- JavaFX Controls -->
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
+        <version>21</version>
+    </dependency>
+    <!-- JavaFX FXML (if you use it) -->
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-fxml</artifactId>
+        <version>21</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -48,6 +72,32 @@
           <mainClass>${exec.mainClass}</mainClass>
         </configuration>
       </plugin>
+          <plugin>
+      <groupId>org.openjfx</groupId>
+      <artifactId>javafx-maven-plugin</artifactId>
+      <version>0.0.8</version>
+      <configuration>
+        <mainClass>com.InteractiveSmoothingTool</mainClass>
+      </configuration>
+    </plugin>
+        <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-shade-plugin</artifactId>
+      <version>3.5.0</version>
+      <executions>
+        <execution>
+          <phase>package</phase>
+          <goals><goal>shade</goal></goals>
+          <configuration>
+            <transformers>
+              <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                <mainClass>com.UI</mainClass> <!-- Or your actual main class -->
+              </transformer>
+            </transformers>
+          </configuration>
+        </execution>
+      </executions>
+    </plugin>
     </plugins>
   </build>
 </project>
