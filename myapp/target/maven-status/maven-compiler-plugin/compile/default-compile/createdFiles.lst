@@ -1,1 +1,4 @@
-com/Main.class
+com/Layer.class
+com/Neuron.class
+com/MLP.class
+
