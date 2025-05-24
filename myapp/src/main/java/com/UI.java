@@ -22,10 +22,11 @@ public class UI extends JFrame {
     // Function modes
     private static final String MODE_SMOOTHING = "Smoothing Graphs";
     private static final String MODE_MLP = "RunMLP";
+    private static final String MODE_GP = "Run GP";
     private static final String MODE_MLP_TEST = "TestMLP";
     private static final String MODE_DT = "RunDT";
 
-    private String[] functions = { MODE_SMOOTHING, MODE_MLP };
+    private String[] functions = { MODE_SMOOTHING, MODE_MLP, MODE_GP };
 
     public UI() {
         super("COS314A3");
@@ -49,6 +50,7 @@ public class UI extends JFrame {
 
         modePanel.add(createSmoothingPanel(), MODE_SMOOTHING);
         modePanel.add(createMLPPanel(), MODE_MLP);
+        modePanel.add(createGPPanel(), MODE_GP);
         add(modePanel, BorderLayout.CENTER);
 
         statusLabel = new JLabel("Select a mode to begin.");
@@ -92,6 +94,75 @@ public class UI extends JFrame {
         return mainPanel;
     }
 
+    private JPanel createGPPanel() {
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BorderLayout(10, 10));
+
+        JPanel inputPanel = new JPanel();
+        inputPanel.setLayout(new GridLayout(0, 2, 10, 10));
+
+        JTextField maxNumGensField = new JTextField("100");
+        JTextField populationSizeField = new JTextField("20");
+        JTextField CrossoverRate = new JTextField("0.8");
+        JTextField MutationRate = new JTextField("0.12");
+
+        inputPanel.add(new JLabel("Maximum number of generations:"));
+        inputPanel.add(maxNumGensField);
+        inputPanel.add(new JLabel("Population size:"));
+        inputPanel.add(populationSizeField);
+        inputPanel.add(new JLabel("Crossover Rate:"));
+        inputPanel.add(CrossoverRate);
+        inputPanel.add(new JLabel("Mutation Rate:"));
+        inputPanel.add(MutationRate);
+
+        JButton runGPButton = new JButton("Run GP");
+        inputPanel.add(runGPButton);
+        inputPanel.add(new JLabel(""));
+
+        JTextArea consoleArea = new JTextArea("Output");
+        consoleArea.setLineWrap(true);
+        consoleArea.setWrapStyleWord(true);
+        JScrollPane scrollPane = new JScrollPane(consoleArea);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(800, 300));
+
+        mainPanel.add(inputPanel, BorderLayout.NORTH);
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        runGPButton.addActionListener(e -> {
+            try {
+                int maxGenNum = Integer.parseInt(maxNumGensField.getText());
+                int popSize = Integer.parseInt(populationSizeField.getText());
+                double COrate = Double.parseDouble(CrossoverRate.getText());
+                double MutationRa = Double.parseDouble(MutationRate.getText());
+
+                GP gp = new GP(maxGenNum, popSize,COrate, MutationRa,
+                        System.getProperty("user.dir") + "/myapp/src/data/BTC_train.csv",
+                        System.getProperty("user.dir") + "/myapp/src/data/BTC_test.csv");
+                boolean hundred = false;
+                Individual bestIndividual = null;
+                while (!hundred) {
+                    gp.Algorithm();
+                    bestIndividual = gp.getBestIndividual();
+                    if(gp.GetAccuracyOfBestIndividual() == 100){
+                        hundred = true;
+                    }
+                }
+
+                consoleArea.setText(
+                        "Best Individual: " + bestIndividual.toString() +
+                                "\nFitness: " + bestIndividual.fitness +
+                                "\nAccuracy: " + gp.GetAccuracyOfBestIndividual());
+            } catch (Exception ex) {
+                consoleArea.setText("Error: " + ex.getMessage());
+                ex.printStackTrace();
+            }
+        });
+
+        return mainPanel;
+    }
+
     private JPanel createMLPPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout(0, 2, 10, 10));
@@ -107,7 +178,6 @@ public class UI extends JFrame {
         JTextField patienceField = new JTextField("50");
         JTextField minImproField = new JTextField("0.01");
 
-
         JButton runMLPButton = new JButton("Run MLP");
         JButton testMLPButton = new JButton("Test MLP");
         JButton loadMLPButton = new JButton("Load MLP");
@@ -118,7 +188,6 @@ public class UI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(consoleArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
 
         loadMLPButton.addActionListener(e -> {
 

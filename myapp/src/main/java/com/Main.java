@@ -1,6 +1,7 @@
 package com;
 
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -22,60 +23,74 @@ WithStops/_Batch_16_HS_32_LR_0.01_Seed_-9192080552531894582.json
 
 public class Main {
     public static void main(String[] args) {
+        String answer;
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Run MLP or GP. Enter 1 for MLP and 2 for GP");
+        answer = scanner.nextLine();
+        if (answer.equals("1")) {
+            // Dewald main code
+            // double[] lr = { 0.1, 0.05, 0.01 };
+            // long seed = 0;
+            Random r = new Random();
 
-    //    double[] lr = { 0.1, 0.05, 0.01 };
-        // long seed = 0;
-        Random r = new Random();
+            // Create a thread pool with N threads (adjust based on CPU cores)
+            int numThreads = Runtime.getRuntime().availableProcessors();
+            ExecutorService executor = Executors.newFixedThreadPool(numThreads - 2);
 
-        // Create a thread pool with N threads (adjust based on CPU cores)
-        int numThreads = Runtime.getRuntime().availableProcessors();
-        ExecutorService executor = Executors.newFixedThreadPool(numThreads - 2);
+            for (int k = 0; k < 20; k++) {
+                final long seed = r.nextLong();
+                final int it = 5000;
+                final int batch = 16;
+                final int hiddenSize = 32;
+                final int hiddenLayers = 2;
+                final double learningRate = 0.01;
+                final String chartName = "_Batch_" + batch + "_HS_" + hiddenSize
+                        + "_LR_" + learningRate + "_Seed_" + seed;
 
-                    for (int k = 0; k < 20; k++) {
-                        final long seed = r.nextLong();
-                        final int it = 5000; 
-                        final int batch = 16; 
-                        final int hiddenSize = 32; 
-                        final int hiddenLayers = 2; 
-                        final double learningRate = 0.01;
-                        final String chartName = "_Batch_" + batch + "_HS_" + hiddenSize
-                                + "_LR_" + learningRate + "_Seed_" + seed;
+                executor.submit(() -> {
+                    try {
+                        MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed,
+                                learningRate);
+                        mlp.trainNetwork(it, batch, 50, 0.01);
 
-                        executor.submit(() -> {
-                            try {
-                                MLP mlp = new MLP("src/data/BTC_train.csv", hiddenSize, hiddenLayers, 5, seed,
-                                        learningRate);
-                                mlp.trainNetwork(it, batch, 50, 0.01);
+                        // double accuracy = mlp.testNetwork();
+                        // if (accuracy >= 0.95)
+                        {
+                            // Prepare a data holder class or map
+                            TrainingMetrics data = new TrainingMetrics(
+                                    mlp.getLosses(),
+                                    mlp.avgWeights,
+                                    mlp.avgBiases,
+                                    mlp.epochTimes,
+                                    mlp.deltaValues);
 
-                               // double accuracy = mlp.testNetwork();
-                                //if (accuracy >= 0.95) 
-                                {
-                                    // Prepare a data holder class or map
-                                    TrainingMetrics data = new TrainingMetrics(
-                                            mlp.getLosses(),
-                                            mlp.avgWeights,
-                                            mlp.avgBiases,
-                                            mlp.epochTimes,
-                                            mlp.deltaValues);
+                            data.saveRawData(chartName + ".json");
 
-                                            data.saveRawData(chartName + ".json");
- 
+                            // Save the model as usual
+                            // mlp.saveModel(accuracy + " : " + chartName + ".mlp");
+                            System.out.println("Finished: " + chartName);
 
-                                    // Save the model as usual
-                                  //  mlp.saveModel(accuracy + " : " + chartName + ".mlp");
-                                    System.out.println("Finished: " + chartName);
-
-                                }
-                            } catch (Exception e) {
-                                System.err.println("Failed Training: " + chartName);
-                                e.printStackTrace();
-                            }
-                        });
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed Training: " + chartName);
+                        e.printStackTrace();
                     }
+                });
+            }
 
+            // Shutdown the executor and wait for all tasks to finish
+            executor.shutdown();
+        } else if (answer.equals("2")) {
+            // Herrie Main code
+            GP gp = new GP(100, 20);
+            gp.Algorithm();
+            Individual besIndividual = gp.getBestIndividual();
+            System.out.println();
+            System.out.println(besIndividual.toString());
+            System.out.println("Fitness of best individual: "+ besIndividual.fitness);
+            System.out.println("Accuracy of best individual: "+ gp.GetAccuracyOfBestIndividual());
+        }
 
-        // Shutdown the executor and wait for all tasks to finish
-        executor.shutdown();
     }
 
 }
