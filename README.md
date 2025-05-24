@@ -45,3 +45,11 @@ Ensure you have Java installed (`java -version`).
 ```bash
 java -jar UI.jar
 java -jar DT.jar
+```
+
+## Contributors
+
+- **Dewald Colesky** — `u23536030`  
+- **Liam van Kasterop** — `u22539761`  
+- **Henco Pretorius** — `u23525381`  
+- **Herrie Engelbrecht** — `u22512374`
