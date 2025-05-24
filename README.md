@@ -32,7 +32,7 @@ The main deliverable is an executable `.jar` file that runs **MLP**, **GP**, and
 ## Report
 
 The full project report, detailing design decisions, results, and evaluation metrics, can be accessed here:  
-[https://github.com/amJohnnyma/COS314A3/blob/main/Assignment_3_COS314.pdf]
+[https://github.com/amJohnnyma/COS314A3/blob/main/COS314A3.pdf]
 
 ---
 
