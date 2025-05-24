@@ -1,2 +1,14 @@
-/mnt/c/Users/henco/OneDrive/Desktop/BSCCS/SEMESTER_1/COS 314(AI)/Pracs/Assignment 3/COS314A3/MyApp/src/main/java/com/Main.java
-/mnt/c/Users/henco/OneDrive/Desktop/BSCCS/SEMESTER_1/COS 314(AI)/Pracs/Assignment 3/COS314A3/MyApp/src/main/java/com/CryptoStockPredictor.java
+/root/COS314A3/myapp/src/main/java/com/Node.java
+/root/COS314A3/myapp/src/main/java/com/TerminalNode.java
+/root/COS314A3/myapp/src/main/java/com/Main.java
+/root/COS314A3/myapp/src/main/java/com/FunctionNode.java
+/root/COS314A3/myapp/src/main/java/com/Graph.java
+/root/COS314A3/myapp/src/main/java/com/MLP.java
+/root/COS314A3/myapp/src/main/java/com/TrainingMetrics.java
+/root/COS314A3/myapp/src/main/java/com/AlgoFunctions.java
+/root/COS314A3/myapp/src/main/java/com/Layer.java
+/root/COS314A3/myapp/src/main/java/com/Neuron.java
+/root/COS314A3/myapp/src/main/java/com/GP.java
+/root/COS314A3/myapp/src/main/java/com/Individual.java
+/root/COS314A3/myapp/src/main/java/com/Dataset.java
+/root/COS314A3/myapp/src/main/java/com/UI.java
